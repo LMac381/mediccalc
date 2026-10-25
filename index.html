@@ -1,0 +1,1030 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Medic Calc">
+<meta name="theme-color" content="#162029">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-192.png">
+<style>
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:light}
+body{margin:0;font:14px system-ui,-apple-system,sans-serif}
+img{max-width:100%}[hidden]{display:none!important}
+a{color:var(--accent)}
+</style>
+<title>Medic Pocket Calc</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Semi+Condensed:wght@600;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+/* Layout: sticky patient-weight bar on top, one tool per tab, fixed bottom tab bar for one-thumb use */
+:root{
+  --bg:#e9edf1; --surface:#ffffff; --surface-2:#f3f5f8; --ink:#14202b; --muted:#566573; --line:#d3dae1;
+  --accent:#a14b00; --accent-ink:#ffffff; --accent-soft:#fbe7d3;
+  --ok:#2e7d32; --warn:#b26a00; --crit:#c62828;
+  --display:"Barlow Semi Condensed","Arial Narrow",system-ui,sans-serif;
+  --body:"Barlow",system-ui,-apple-system,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0d1319; --surface:#162029; --surface-2:#1d2933; --ink:#e7edf2; --muted:#93a3b1; --line:#2a3845;
+  --accent:#f2a33a; --accent-ink:#1a1206; --accent-soft:#3a2a14;
+  --ok:#66bb6a; --warn:#f2b84b; --crit:#ef5350; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0d1319; --surface:#162029; --surface-2:#1d2933; --ink:#e7edf2; --muted:#93a3b1; --line:#2a3845;
+  --accent:#f2a33a; --accent-ink:#1a1206; --accent-soft:#3a2a14;
+  --ok:#66bb6a; --warn:#f2b84b; --crit:#ef5350; color-scheme:dark}
+*{box-sizing:border-box}
+html,body{background:var(--bg)}
+body{color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.4;-webkit-text-size-adjust:100%}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--surface)}
+.wrap{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+header.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--surface);border-bottom:1px solid var(--line)}
+header.bar .wrap{padding-block:10px;display:flex;flex-direction:column;gap:8px}
+.brand{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.brand h1{font-family:var(--display);font-size:20px;letter-spacing:.02em;margin:0;text-transform:uppercase}
+.brand h1 span{color:var(--accent)}
+.brand small{color:var(--muted);font-size:12px}
+.wt{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.wt label{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:600}
+.wt input{width:96px}
+.wt .alt{font-family:var(--mono);font-size:14px;color:var(--muted)}
+textarea{font:500 16px var(--body);padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--surface-2);color:var(--ink);width:100%;resize:vertical}
+input[type=number],select{font:500 18px var(--mono);padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--surface-2);color:var(--ink);min-width:0}
+input:focus-visible,button:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.seg button{font:600 14px var(--body);padding:8px 12px;border:0;background:var(--surface-2);color:var(--muted)}
+.seg button[aria-pressed=true]{background:var(--accent);color:var(--accent-ink)}
+main{padding-block:14px calc(84px + env(safe-area-inset-bottom,0px))}
+section.view{display:flex;flex-direction:column;gap:14px}
+h2{font-family:var(--display);font-size:22px;margin:0;text-wrap:balance}
+h3{font-family:var(--display);font-size:17px;margin:0;text-wrap:balance}
+.note{font-size:13px;color:var(--muted);margin:0}
+.warnbox{font-size:13px;background:var(--accent-soft);border-radius:8px;padding:10px 12px;margin:0}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:8px}
+.med-head{display:flex;justify-content:space-between;gap:8px;align-items:baseline}
+.route{font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.rows{display:grid;grid-template-columns:auto 1fr;gap:4px 12px}
+.rows dt{color:var(--muted);font-size:14px}
+.rows dd{margin:0;font-family:var(--mono);font-weight:600;font-variant-numeric:tabular-nums;text-align:right}
+.rows dd.big{font-size:20px;color:var(--accent)}
+.empty{color:var(--muted);font-size:14px;font-style:italic}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.field{display:flex;flex-direction:column;gap:4px;min-width:0}
+.field label{font-size:12px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);font-weight:600}
+.out{font-family:var(--mono);font-size:22px;font-weight:600;font-variant-numeric:tabular-nums;color:var(--accent)}
+.out small{font-size:13px;color:var(--muted);font-weight:500}
+/* score items */
+.item{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:8px}
+.item-head{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.item-head .pts{font-family:var(--mono);font-weight:600;color:var(--muted)}
+.item-head .pts.set{color:var(--accent)}
+.opts{display:flex;flex-direction:column;gap:6px}
+.opt{display:flex;gap:10px;align-items:center;text-align:left;font:500 15px var(--body);padding:9px 10px;border:1px solid var(--line);border-radius:8px;background:var(--surface-2);color:var(--ink)}
+.opt b{font-family:var(--mono);min-width:22px;display:inline-block;text-align:center}
+.opt[aria-pressed=true]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.total{position:sticky;top:calc(env(safe-area-inset-top,0px) + var(--hdr,112px));z-index:4;display:flex;justify-content:space-between;align-items:center;gap:10px;background:var(--ink);color:var(--bg);border-radius:10px;padding:10px 14px}
+.total .n{font-family:var(--mono);font-size:30px;font-weight:600;font-variant-numeric:tabular-nums}
+.total .lbl{font-size:13px;line-height:1.25}
+.total button{font:600 14px var(--body);background:transparent;color:inherit;border:1px solid currentColor;border-radius:8px;padding:7px 12px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font:500 14px var(--body);padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--surface-2);color:var(--ink)}
+.chip[aria-pressed=true]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.opts.row{flex-direction:row;flex-wrap:wrap}
+.opts.row .opt{flex:1 1 auto;justify-content:center}
+.report{font:500 14px/1.45 var(--mono);background:var(--surface-2);border:1px solid var(--line);border-radius:8px;padding:10px;margin:0;-webkit-user-select:all;user-select:all;overflow-wrap:anywhere}
+input[type=search]{font:500 16px var(--body);padding:9px 10px;border:1px solid var(--line);border-radius:8px;background:var(--surface-2);color:var(--ink);width:100%}
+.flag{border-radius:10px;padding:10px 12px;border:1px solid var(--line);background:var(--surface);display:flex;flex-direction:column;gap:4px}
+.flag.ci{border-left:5px solid var(--crit)}.flag.okc{border-left:5px solid var(--ok)}.flag.ca{border-left:5px solid var(--warn)}
+.flag h3 span{font:600 11px var(--body);letter-spacing:.08em;text-transform:uppercase;margin-left:6px}
+.flag ul{margin:0;padding-left:18px;font-size:14px}
+.chip.sel{border-color:var(--accent)}
+.rec{display:flex;flex-direction:column;gap:6px}
+.rec time{font:600 12px var(--mono);color:var(--muted)}
+.btn.sm{font-size:13px;padding:6px 10px}
+.how{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.how summary{font:600 15px var(--display);cursor:pointer}
+.how ul{margin:8px 0 0;padding-left:18px;font-size:14px;display:flex;flex-direction:column;gap:4px}
+.btn{font:600 15px var(--body);padding:9px 14px;border-radius:8px;border:1px solid var(--accent);background:transparent;color:var(--accent)}
+nav.tabs{position:fixed;left:0;right:0;bottom:0;z-index:6;background:var(--surface);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px);padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px);display:grid;grid-template-columns:repeat(6,1fr)}
+nav.tabs button{font:600 12px var(--body);letter-spacing:.03em;text-transform:uppercase;padding:14px 2px 12px;border:0;background:transparent;color:var(--muted);border-top:3px solid transparent}
+nav.tabs button[aria-selected=true]{color:var(--accent);border-top-color:var(--accent)}
+.sev-ok{color:var(--ok)}.sev-warn{color:var(--warn)}.sev-crit{color:var(--crit)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+</head>
+<body>
+<header class="bar" id="hdr">
+  <div class="wrap">
+    <div class="brand"><h1>Medic <span>Pocket</span> Calc</h1><small>Patient weight drives all doses</small></div>
+    <div class="wt">
+      <label for="wIn">Weight</label>
+      <input id="wIn" type="number" inputmode="decimal" placeholder="—" min="0" step="0.1">
+      <div class="seg" role="group" aria-label="Weight unit">
+        <button id="uKg" aria-pressed="true">kg</button><button id="uLb" aria-pressed="false">lb</button>
+      </div>
+      <span class="alt" id="wAlt"></span>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+<!-- MEDS -->
+<section class="view" id="v-meds">
+  <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
+    <h2>Medications</h2>
+    <div class="seg" role="group" aria-label="Scope of practice"><button id="scP" aria-pressed="true">PCP</button><button id="scA" aria-pressed="false">ACP</button></div>
+  </div>
+  <p class="note" id="scNote"></p>
+  <p class="warnbox">Doses and conditions are from the <a href="https://www.ontario.ca/files/2025-04/moh-advanced-life-support-als-patient-care-standards-pcs-5.4-en-2025-04-23.pdf" target="_blank" rel="noopener">ALS PCS v5.4</a>. Volumes appear only where the PCS states a concentration. Your RBHP authorization decides what you can give, including auxiliary (AUX) directives.</p>
+  <div id="medList" style="display:flex;flex-direction:column;gap:10px"></div>
+  <p class="note">Need a drug that isn't listed? Use the Dose tab to work from any concentration.</p>
+</section>
+
+<!-- DOSE CALC -->
+<section class="view" id="v-dose" hidden>
+  <h2>Dose Calculator</h2>
+  <p class="note">Works for any drug. Enter what's ordered and what's in your hand. Double-check the units on the vial.</p>
+  <div class="card">
+    <h3>1 · Ordered dose</h3>
+    <div class="grid2">
+      <div class="field"><label for="oAmt">Dose</label><input id="oAmt" type="number" inputmode="decimal" step="any" placeholder="e.g. 0.01"></div>
+      <div class="field"><label for="oUnit">Unit</label><select id="oUnit"><option>mg</option><option>mcg</option><option>g</option><option>units</option><option>mEq</option></select></div>
+    </div>
+    <div class="seg" role="group" aria-label="Dose basis" style="align-self:flex-start">
+      <button id="oFlat" aria-pressed="true">Total dose</button><button id="oPerKg" aria-pressed="false">Per kg</button>
+    </div>
+    <div class="field" id="oMaxF" hidden><label for="oMax">Max single dose (same unit, optional)</label><input id="oMax" type="number" inputmode="decimal" step="any" placeholder="none"></div>
+  </div>
+  <div class="card">
+    <h3>2 · Stock on hand</h3>
+    <div class="grid2">
+      <div class="field"><label for="sAmt">Drug amount</label><input id="sAmt" type="number" inputmode="decimal" step="any" placeholder="e.g. 1"></div>
+      <div class="field"><label for="sUnit">Unit</label><select id="sUnit"><option>mg</option><option>mcg</option><option>g</option><option>units</option><option>mEq</option></select></div>
+      <div class="field"><label for="sVol">In volume (mL)</label><input id="sVol" type="number" inputmode="decimal" step="any" placeholder="e.g. 1"></div>
+      <div class="field"><label>Concentration</label><div class="out" id="sConc" style="font-size:17px">—</div></div>
+    </div>
+    <p class="note">Percent solutions: 1% = 10 mg/mL. D10W = 100 mg/mL. 1:1,000 = 1 mg/mL; 1:10,000 = 0.1 mg/mL.</p>
+  </div>
+  <div class="card">
+    <h3>3 · Dilute in saline (optional)</h3>
+    <div class="grid2">
+      <div class="field"><label for="xDrug">Stock drawn up (mL)</label><input id="xDrug" type="number" inputmode="decimal" step="any" placeholder="whole vial"></div>
+      <div class="field"><label for="xTot">Final total volume (mL)</label><input id="xTot" type="number" inputmode="decimal" step="any" placeholder="e.g. 10"></div>
+    </div>
+    <p class="note">Leave "stock drawn up" blank to use the whole volume from step 2.</p>
+  </div>
+  <div class="card" style="border-color:var(--accent);border-width:2px">
+    <h3>Result</h3>
+    <dl class="rows" id="doseOut"></dl>
+  </div>
+
+  <div class="card">
+    <h3>Infusion rate</h3>
+    <div class="grid2">
+      <div class="field"><label for="iDose">Dose rate</label><input id="iDose" type="number" inputmode="decimal" step="any" placeholder="e.g. 5"></div>
+      <div class="field"><label for="iUnit">Unit</label><select id="iUnit">
+        <option value="mcg|kg|min">mcg/kg/min</option><option value="mcg||min">mcg/min</option><option value="mg||min">mg/min</option>
+        <option value="mg|kg|h">mg/kg/h</option><option value="mg||h">mg/h</option><option value="units||h">units/h</option><option value="units|kg|h">units/kg/h</option></select></div>
+      <div class="field"><label for="iBag">Drug in bag</label><input id="iBag" type="number" inputmode="decimal" step="any" placeholder="amount"></div>
+      <div class="field"><label for="iBagU">Unit</label><select id="iBagU"><option>mg</option><option>mcg</option><option>g</option><option>units</option></select></div>
+      <div class="field"><label for="iVol">Bag volume (mL)</label><input id="iVol" type="number" inputmode="decimal" step="any" placeholder="e.g. 250"></div>
+      <div class="field"><label for="iSet">Drop set</label><select id="iSet"><option value="60">60 gtt/mL</option><option value="10">10 gtt/mL</option><option value="15">15 gtt/mL</option><option value="20">20 gtt/mL</option></select></div>
+    </div>
+    <dl class="rows" id="iOut"></dl>
+  </div>
+</section>
+
+<!-- NIHSS -->
+<section class="view" id="v-nihss" hidden>
+  <h2>NIH Stroke Scale</h2>
+  <details class="how" open><summary>How to administer</summary><ul>
+   <li>Go in order and score the first attempt. Don't coach or repeat.</li>
+   <li><b>1b:</b> ask the month and their age. Only exact answers count.</li>
+   <li><b>1c:</b> "Open and close your eyes", then "Grip and let go" with the non-weak hand.</li>
+   <li><b>2:</b> test horizontal eye movement only.</li>
+   <li><b>3:</b> test each quadrant by finger counting or visual threat.</li>
+   <li><b>4:</b> "Show me your teeth, raise your eyebrows, squeeze your eyes shut."</li>
+   <li><b>5–6:</b> test one limb at a time. Arms out 10 s (90° sitting / 45° lying), palms down; legs at 30° lying for 5 s. Count aloud.</li>
+   <li><b>7:</b> finger-nose and heel-shin on both sides. Score only if the ataxia is out of proportion to weakness.</li>
+   <li><b>8:</b> pinprick or touch on face, arm, trunk and leg; compare sides.</li>
+   <li><b>9–10:</b> without the picture cards, use conversation, naming objects you show, and repeating phrases. Judge clarity of speech for dysarthria.</li>
+   <li><b>11:</b> touch both sides at once and show fingers in both visual fields. Ignoring one side is extinction.</li>
+  </ul></details>
+  <div class="total"><div><div class="n" id="nTot">0</div></div><div class="lbl" id="nLbl" style="flex:1">0 of 15 items scored</div><button id="nReset">Reset</button></div>
+  <div id="nList" style="display:flex;flex-direction:column;gap:10px"></div>
+  <div class="card"><h3>Report line</h3><p class="report" id="nRep"></p><div style="display:flex;gap:8px"><button class="btn" id="nCopy">Copy</button><button class="btn" id="nSave">Save to Recent</button></div></div>
+  <p class="note">Score what you see on the first attempt; don't coach. Limbs: 10 s arms (90° sitting / 45° supine), 5 s legs at 30°. UN (untestable, e.g. amputation) scores 0 here.</p>
+</section>
+
+<!-- ADVANCED -->
+<section class="view" id="v-adv" hidden>
+  <h2>Scores</h2>
+  <p class="note">Pick a protocol or scale, then copy the line or save it to Recent with a timestamp.</p>
+  <div class="chips" id="advPick"></div>
+  <div id="advBody" style="display:flex;flex-direction:column;gap:12px"></div>
+</section>
+
+<!-- TOOLS -->
+<section class="view" id="v-tools" hidden>
+  <h2>Tools</h2>
+  <div class="card">
+    <h3>Pounds ↔ kilograms</h3>
+    <div class="grid2">
+      <div class="field"><label for="tLb">lb</label><input id="tLb" type="number" inputmode="decimal" step="any"></div>
+      <div class="field"><label for="tKg">kg</label><input id="tKg" type="number" inputmode="decimal" step="any"></div>
+    </div>
+    <button class="btn" id="tUse" style="align-self:flex-start">Use as patient weight</button>
+  </div>
+  <div class="card">
+    <h3>Temperature</h3>
+    <div class="grid2">
+      <div class="field"><label for="tF">°F</label><input id="tF" type="number" inputmode="decimal" step="any"></div>
+      <div class="field"><label for="tC">°C</label><input id="tC" type="number" inputmode="decimal" step="any"></div>
+    </div>
+  </div>
+  <div class="card">
+    <h3>Height</h3>
+    <div class="grid2">
+      <div class="field"><label for="hFt">ft</label><input id="hFt" type="number" inputmode="numeric"></div>
+      <div class="field"><label for="hIn">in</label><input id="hIn" type="number" inputmode="decimal" step="any"></div>
+    </div>
+    <div class="out" id="hOut">—</div>
+  </div>
+  <div class="card">
+    <h3>MAP and shock index</h3>
+    <div class="grid2">
+      <div class="field"><label for="vS">SBP</label><input id="vS" type="number" inputmode="numeric"></div>
+      <div class="field"><label for="vD">DBP</label><input id="vD" type="number" inputmode="numeric"></div>
+      <div class="field"><label for="vH">Heart rate</label><input id="vH" type="number" inputmode="numeric"></div>
+    </div>
+    <dl class="rows" id="vOut"></dl>
+  </div>
+  <div class="card">
+    <h3>IV drip rate</h3>
+    <div class="grid2">
+      <div class="field"><label for="dV">Volume (mL)</label><input id="dV" type="number" inputmode="decimal" step="any"></div>
+      <div class="field"><label for="dT">Time (min)</label><input id="dT" type="number" inputmode="decimal" step="any"></div>
+      <div class="field"><label for="dF">Drop set</label>
+        <select id="dF"><option value="10">10 gtt/mL</option><option value="15">15 gtt/mL</option><option value="20">20 gtt/mL</option><option value="60">60 gtt/mL (micro)</option></select></div>
+    </div>
+    <dl class="rows" id="dOut"></dl>
+  </div>
+  <div class="card">
+    <h3>Pediatric weight estimate</h3>
+    <div class="grid2">
+      <div class="field"><label for="aAge">Age</label><input id="aAge" type="number" inputmode="decimal" step="any"></div>
+      <div class="field"><label for="aUnit">Unit</label><select id="aUnit"><option value="y">years</option><option value="m">months</option></select></div>
+    </div>
+    <div class="out" id="aOut">—</div>
+    <p class="note">APLS formulas: &lt;12 mo 0.5×months+4; 1–5 y 2×age+8; 6–12 y 3×age+7. A length-based tape is more accurate.</p>
+    <button class="btn" id="aUse" style="align-self:flex-start">Use as patient weight</button>
+  </div>
+<h2 style="margin-top:8px">Burns: rule of nines</h2>
+  <p class="note">Adult chart. Tap each area with partial or full thickness burns. Don't count superficial (red, unblistered) skin.</p>
+  <div class="total"><div class="n" id="bTot">0%</div><div class="lbl" style="flex:1">TBSA</div><button id="bReset">Reset</button></div>
+  <div class="card"><h3>Body areas</h3><div class="chips" id="bChips"></div></div>
+  <div class="card">
+    <h3>Patient-palm method (1% each)</h3>
+    <div style="display:flex;gap:10px;align-items:center">
+      <button class="btn" id="pMinus" aria-label="Remove one palm">−</button>
+      <span class="out" id="pCount">0</span><small class="note">palms</small>
+      <button class="btn" id="pPlus" aria-label="Add one palm">+</button>
+    </div>
+  </div>
+  <div class="card"><h3>Parkland formula</h3><dl class="rows" id="park"></dl><p class="note">4 mL × kg × %TBSA over 24 h, half in the first 8 h from time of burn. Reference for receiving facility; follow your own fluid directive in the field.</p></div>
+  <div class="card" id="refs">
+    <h3>References</h3>
+    <ul style="margin:0;padding-left:18px;display:flex;flex-direction:column;gap:6px">
+      <li><a href="https://www.ontario.ca/files/2025-04/moh-advanced-life-support-als-patient-care-standards-pcs-5.4-en-2025-04-23.pdf" target="_blank" rel="noopener">ALS Patient Care Standards v5.4</a> <span class="note">· Ontario MOH, in force June 2, 2025</span></li>
+      <li><a href="https://files.ontario.ca/moh_2/moh-standards-basic-life-support-patient-care-standards-v3-4-en-2023-03-10.pdf" target="_blank" rel="noopener">BLS Patient Care Standards v3.4</a> <span class="note">· Ontario MOH, incl. FTTG, SMR, STEMI and stroke prompt cards</span></li>
+      <li><a href="https://www.ontario.ca/document/patient-care-documents-reference" target="_blank" rel="noopener">Ontario patient care documents</a> <span class="note">· check here for newer versions</span></li>
+      <li><a href="https://www.prehospitalmedicine.ca/" target="_blank" rel="noopener">Sunnybrook Centre for Prehospital Medicine</a> <span class="note">· regional base hospital</span></li>
+    </ul>
+  </div>
+</section>
+
+
+<!-- CHECKS -->
+<section class="view" id="v-check" hidden>
+  <h2>Contraindication check</h2>
+  <p class="note">Pick the directive you're working under. Only the drugs, inputs and home meds that matter for it are shown. Nothing here is saved. <b class="sev-crit">Directive</b> = in the ALS PCS 5.4 tables. <b class="sev-warn">Suggested</b> = general clinical risk, not in the directive.</p>
+  <div class="card"><h3>Directive</h3><div class="chips" id="kDirs"></div><p class="note" id="kPickHint">Directives follow the PCP/ACP switch on the Meds tab.</p></div>
+  <a class="total" href="#ckOut" id="ckBar" style="text-decoration:none" hidden><div class="lbl" id="ckSum" style="flex:1"></div><span class="lbl">View ↓</span></a>
+  <div id="kInputs" style="display:flex;flex-direction:column;gap:14px" hidden>
+    <p class="note" id="kDrugs" style="margin:0"></p>
+    <div class="card" id="kVitals">
+      <h3>Vitals</h3>
+      <div class="grid2">
+        <div class="field"><label for="kS">SBP</label><input id="kS" type="number" inputmode="numeric"></div>
+        <div class="field"><label for="kH">Heart rate</label><input id="kH" type="number" inputmode="numeric"></div>
+        <div class="field"><label for="kA">Age (years)</label><input id="kA" type="number" inputmode="decimal" step="any"></div>
+      </div>
+    </div>
+    <div class="card" id="kCondCard"><h3>Conditions and allergies</h3><div class="chips" id="kCond"></div></div>
+    <div class="card" id="kMedCard">
+      <h3>Home medications</h3>
+      <p class="note" id="kMedHint" style="margin:0"></p>
+      <div class="field"><label for="kQ">Search by generic or brand name</label><input id="kQ" type="search" autocomplete="off" autocorrect="off" placeholder="e.g. Eliquis, Cialis, Tegretol"></div>
+      <div class="chips" id="kRes"></div>
+      <div class="chips" id="kSel"></div>
+      <div class="chips" id="kCls"></div>
+    </div>
+  </div>
+  <div id="ckOut" style="display:flex;flex-direction:column;gap:10px;scroll-margin-top:140px" hidden></div>
+  <button class="btn" id="kClear" style="align-self:flex-start">Clear entries</button>
+  <p class="warnbox">Directive items are taken from the ALS PCS v5.4 conditions and contraindications tables, using its definitions of normotension (adult SBP ≥ 100; pediatric ≥ 90 + 2 × age) and hypotension (adult &lt; 90; pediatric &lt; 70 + 2 × age). Suggested items are general clinical knowledge, not Ontario standards.</p>
+</section>
+</main>
+
+<nav class="tabs" role="tablist">
+  <button role="tab" data-v="meds" aria-selected="true">Meds</button>
+  <button role="tab" data-v="dose" aria-selected="false">Dose</button>
+  <button role="tab" data-v="nihss" aria-selected="false">NIHSS</button>
+  <button role="tab" data-v="adv" aria-selected="false">Scores</button>
+  <button role="tab" data-v="check" aria-selected="false">Check</button>
+  <button role="tab" data-v="tools" aria-selected="false">Tools</button>
+</nav>
+
+<script>
+const $=id=>document.getElementById(id);
+const LB=2.20462;
+const fmt=(n,d=2)=>{if(n==null||!isFinite(n))return"—";return(+n.toFixed(d)).toString()};
+const store={get(k,d){try{const v=localStorage.getItem("mpc_"+k);return v==null?d:JSON.parse(v)}catch(e){return d}},set(k,v){try{localStorage.setItem("mpc_"+k,JSON.stringify(v))}catch(e){}}};
+
+/* ---------- weight ---------- */
+let kg=store.get("kg",null), unit=store.get("unit","kg");
+function showWeight(){
+  $("uKg").setAttribute("aria-pressed",unit==="kg");$("uLb").setAttribute("aria-pressed",unit==="lb");
+  if(kg){ $("wIn").value=fmt(unit==="kg"?kg:kg*LB,1); $("wAlt").textContent=unit==="kg"?`= ${fmt(kg*LB,1)} lb`:`= ${fmt(kg,1)} kg`; }
+  else{ $("wIn").value=""; $("wAlt").textContent=""; }
+}
+function setKg(v){kg=v>0?v:null;store.set("kg",kg);showWeight();renderMeds();renderBurns();}
+$("wIn").addEventListener("input",e=>{const v=parseFloat(e.target.value);kg=v>0?(unit==="kg"?v:v/LB):null;store.set("kg",kg);
+  $("wAlt").textContent=kg?(unit==="kg"?`= ${fmt(kg*LB,1)} lb`:`= ${fmt(kg,1)} kg`):"";renderMeds();renderBurns();});
+$("uKg").onclick=()=>{unit="kg";store.set("unit",unit);showWeight()};
+$("uLb").onclick=()=>{unit="lb";store.set("unit",unit);showWeight()};
+
+/* ---------- meds ---------- */
+// Each returns rows [[label,value,big?]] for a given kg, or a string note when weight is needed/not applicable.
+/* All doses: ALS PCS v5.4 (Ontario MOH, April 2025). Volumes are shown only where the PCS states the concentration.
+   Each card: n name, d directive(s), r route/concentration, w needs weight, f(w) rows, ax auxiliary. */
+const r05=d=>Math.round(d/.05)*.05, r10=d=>Math.round(d/10)*10;
+const cap=(d,max)=>Math.min(d,max);
+const NW="Enter weight above";
+const VOLNOTE="Volume: use the Dose tab with your vial's concentration";
+const PCP=[
+ {n:"Salbutamol",d:"Bronchoconstriction",r:"MDI (spacer) / NEB",w:1,f:w=>w<25?[["MDI","up to 600 mcg (6 puffs)",1],["NEB","2.5 mg"],["Band","< 25 kg"],["Repeat","q5–15 min PRN, max 3"]]:[["MDI","up to 800 mcg (8 puffs)",1],["NEB","5 mg"],["Band","≥ 25 kg"],["Repeat","q5–15 min PRN, max 3"]]},
+ {n:"Epinephrine IM",d:"Allergic reaction · Bronchoconstriction · Cardiac arrest",r:"IM · 1 mg/mL (1:1,000)",w:1,f:w=>{const d=r05(cap(.01*w,.5));return[["Dose",fmt(d)+" mg = "+fmt(d)+" mL",1],["Rule","0.01 mg/kg, max 0.5 mg, may round to 0.05 mg"],["Anaphylaxis","min 5 min apart, max 2"],["Bronchoconstriction","1 dose; BVM required + Hx asthma"],["Arrest","1 dose; anaphylaxis suspected as cause"]]}},
+ {n:"Epinephrine NEB",d:"Croup",r:"NEB · 1 mg/mL",w:1,f:w=>[["Dose",w<10?"2.5 mg (2.5 mL)":"5 mg (5 mL)",1],["Band",w<10?"< 10 kg":"≥ 10 kg"],["Max","1 dose"],["Conditions","6 mo to < 8 y, HR < 200, stridor at rest"]]},
+ {n:"Dexamethasone",d:"Bronchoconstriction · Croup",r:"PO / IM / IV (croup: PO)",w:1,f:w=>[["Dose",fmt(cap(.5*w,8),1)+" mg",1],["Rule","0.5 mg/kg, max 8 mg, 1 dose"],["Volume",VOLNOTE]]},
+ {n:"Diphenhydramine",d:"Allergic reaction",r:"IV / IM",w:1,f:w=>w<25?"Directive condition: weight ≥ 25 kg.":[["Dose",w<50?"25 mg":"50 mg",1],["Band",w<50?"25–49 kg":"≥ 50 kg"],["Max","1 dose"]]},
+ {n:"ASA",d:"Cardiac ischemia",r:"PO, chewed",f:()=>[["Dose","160–162 mg",1],["Max","1 dose"],["Conditions","≥ 18 y, unaltered LOA, able to chew and swallow"]]},
+ {n:"Nitroglycerin",d:"Cardiac ischemia · Acute cardiogenic pulmonary edema",r:"SL",f:()=>[["Ischemia","0.3 or 0.4 mg q5 min",1],["Ischemia max","6 doses; 3 if STEMI"],["CPE, SBP 100–139","0.3 or 0.4 mg q5 min, max 6"],["CPE, SBP ≥ 140","0.6 or 0.8 mg if IV or prior nitro use"],["Conditions","≥ 18 y, HR 60–159, SBP ≥ 100, prior use OR IV"]]},
+ {n:"Dextrose",d:"Hypoglycemia",r:"IV · age ≥ 2 y",w:1,f:w=>{const g=cap(.2*w,25),g5=cap(.5*w,25);return[["D10W",fmt(g,1)+" g = "+fmt(g*10,0)+" mL",1],["D50W",fmt(g5,1)+" g = "+fmt(g5*2,0)+" mL"],["Rule","D10W 0.2 g/kg; D50W 0.5 g/kg; max 25 g"],["Repeat","q10 min, max 2"]]}},
+ {n:"Glucagon",d:"Hypoglycemia",r:"IM / IN powder",w:1,f:w=>[["IM",w<25?"0.5 mg":"1 mg",1],["Band",w<25?"< 25 kg":"≥ 25 kg"],["IN powder","3 mg (≥ 4 y)"],["Repeat","q20 min, max 2"]]},
+ {n:"Naloxone",d:"Opioid toxicity",r:"IV / IM / IN / SC",f:()=>[["IV","up to 0.4 mg, titrate to breathing",1],["IM","0.4 mg"],["IN","2–4 mg"],["SC","0.8 mg"],["Repeat","q5 min, max 3"]]},
+ {n:"Buprenorphine/naloxone",d:"Opioid withdrawal",r:"BUC / SL",f:()=>[["Initial","16 mg",1],["Then","8 mg q10 min"],["Max","24 mg cumulative"],["Conditions","≥ 16 y, unaltered LOA, got naloxone this episode, COWS ≥ 8"]]},
+ {n:"Hydrocortisone",d:"Suspected adrenal crisis",r:"IM / IV",w:1,f:w=>[["Dose",fmt(r10(cap(2*w,100)),0)+" mg",1],["Rule","2 mg/kg, max 100 mg, round to 10 mg, 1 dose"],["Condition","patient's own vial presented"]]},
+ {n:"Acetaminophen",d:"Analgesia",r:"PO",f:()=>[["≥ 18 y","960–1,000 mg",1],["12–17 y","500–650 mg"],["Max","1 dose"]]},
+ {n:"Ibuprofen",d:"Analgesia",r:"PO",f:()=>[["Dose","400 mg",1],["Conditions","≥ 12 y, unaltered LOA, max 1"]]},
+ {n:"Ketorolac",d:"Analgesia",r:"IM / IV",f:()=>[["Dose","10–15 mg",1],["Conditions","≥ 12 y, unaltered LOA, max 1"]]},
+ {n:"Ondansetron",d:"Nausea/vomiting",r:"PO / IV / IM",w:1,f:w=>w<25?"Directive condition: weight ≥ 25 kg.":[["Dose","4 mg",1],["Max","1 dose"]]},
+ {n:"Dimenhydrinate",d:"Nausea/vomiting",r:"IV / IM · 50 mg/mL",w:1,f:w=>w<25?"Directive condition: weight ≥ 25 kg.":w<50?[["Dose","25 mg (0.5 mL)",1],["Band","25–49 kg, max 1"],["IV","dilute 1:9 with NS or D5W; IM undiluted"]]:[["Dose","25 or 50 mg",1],["Band","≥ 50 kg; q30 min, max 2, total 50 mg"],["IV","dilute 1:9 with NS or D5W; IM undiluted"],["≥ 65 y","if no ondansetron, weigh risk; may start 25 mg"]]},
+ {n:"Oxytocin",d:"Emergency childbirth",r:"IM",f:()=>[["Dose","10 units",1],["Max","1 dose"],["Conditions","postpartum, SBP < 160"]]},
+ {n:"0.9% NaCl bolus",d:"ROSC · IV & fluid (AUX) · Cardiogenic shock (AUX)",r:"IV",w:1,f:w=>[["ROSC 10 mL/kg",fmt(cap(10*w,1000),0)+" mL (max 1,000)",1],["Hypotension 20 mL/kg",fmt(cap(20*w,2000),0)+" mL (max 2,000; AUX)"],["Cardiogenic shock",fmt(cap(10*w,1000),0)+" mL (≥ 18 y; AUX)"],["Reassess","every 250 mL (≥ 12 y) / 100 mL (2–11 y)"]]},
+ {n:"Tranexamic acid",d:"Traumatic hemorrhage (AUX)",r:"IV (slow, ≥ 5 min) / IM",f:()=>[["Dose","1,000 mg",1],["Max","1 dose"],["Conditions","≥ 16 y, HR ≥ 110 or hypotension, ≤ 3 h from injury"]]},
+ {n:"Defibrillation",d:"Medical & trauma cardiac arrest",r:"Manual",w:1,f:w=>[["< 8 y",fmt(2*w,0)+" J, then "+fmt(4*w,0)+" J",1],["≥ 8 y","per RBHP / manufacturer"],["Interval","2 min"]]},
+];
+const ACP=[
+ {n:"Epinephrine (arrest)",d:"Medical cardiac arrest",r:"IV / IO / CVAD · 0.1 mg/mL",w:1,f:w=>{const p=r05(Math.max(.01*w,.05)),e=cap(.1*w,2);return[["≥ 12 y","1 mg (10 mL) q4 min",1],["≥ 12 y ETT","2 mg (concentration per RBHP)"],["< 12 y IV/IO",fmt(p)+" mg = "+fmt(p/.1,1)+" mL q4 min (min 0.05 mg)"],["< 12 y ETT (1 mg/mL)",fmt(Math.max(e,.5))+" mg (0.1 mg/kg, min 0.5, max 2)"]]}},
+ {n:"Amiodarone (arrest)",d:"Medical cardiac arrest",r:"IV / IO / CVAD",w:1,f:w=>{const a=cap(5*w,300),b=cap(5*w,150);return[["≥ 12 y","300 mg, then 150 mg",1],["< 12 y",fmt(a,0)+" mg, then "+fmt(b,0)+" mg"],["Rule","peds 5 mg/kg (max 300 / 150)"],["Repeat","q4 min, max 2; if not using lidocaine"],["Volume",VOLNOTE]]}},
+ {n:"Lidocaine (arrest)",d:"Medical cardiac arrest",r:"IV / IO / CVAD / ETT",w:1,f:w=>[["≥ 12 y IV",fmt(1.5*w,0)+" mg, then "+fmt(.75*w,0)+" mg",1],["≥ 12 y ETT",fmt(3*w,0)+" mg, then "+fmt(1.5*w,0)+" mg"],["< 12 y IV",fmt(w,0)+" mg × 2"],["< 12 y ETT",fmt(2*w,0)+" mg × 2"],["Repeat","q4 min, max 2; if not using amiodarone"]]},
+ {n:"Adenosine",d:"Tachydysrhythmia",r:"IV",f:()=>[["1st","6 mg",1],["2nd","12 mg"],["Interval","2 min, max 2"],["Conditions","≥ 18 y, unaltered LOA, SBP ≥ 100, HR ≥ 150, narrow regular"],["Patch","if monomorphic wide complex regular"]]},
+ {n:"Amiodarone (tachy)",d:"Tachydysrhythmia · patch",r:"IV infusion over 10 min",f:()=>[["Dose","150 mg",1],["Repeat","150 mg q10 min, max 2"],["Conditions","≥ 18 y, unaltered LOA, SBP ≥ 100, HR ≥ 120, wide regular"],["Patch","mandatory before giving"]]},
+ {n:"Lidocaine (tachy)",d:"Tachydysrhythmia · patch",r:"IV",w:1,f:w=>[["1st",fmt(cap(1.5*w,150),0)+" mg",1],["Then",fmt(cap(.75*w,150),0)+" mg"],["Rule","1.5 then 0.75 mg/kg, max single 150 mg"],["Repeat","q10 min, max 3; patch first"]]},
+ {n:"Synchronized cardioversion",d:"Tachydysrhythmia · patch",r:"Electrical",f:()=>[["Shocks","up to 3, per BHP",1],["Patch failure","100 J, 200 J, then max"],["Conditions","≥ 18 y, HR ≥ 120 wide / ≥ 150 narrow, hypotension + shock signs"]]},
+ {n:"Atropine",d:"Symptomatic bradycardia",r:"IV",f:()=>[["Dose","1 mg",1],["Repeat","q5 min, max 2"],["Conditions","≥ 18 y, HR < 50, hypotension"]]},
+ {n:"Dopamine",d:"ROSC · Cardiogenic shock · Bradycardia",r:"IV · 800 mcg/mL (single strength)",w:1,f:w=>[["5 mcg/kg/min",fmt(5*w*60/800,0)+" mL/h",1],["10 mcg/kg/min",fmt(10*w*60/800,0)+" mL/h"],["15 mcg/kg/min",fmt(15*w*60/800,0)+" mL/h"],["20 mcg/kg/min",fmt(20*w*60/800,0)+" mL/h (max)"],["Titrate","+5 q5 min to SBP 90–109"]]},
+ {n:"Calcium gluconate 10%",d:"Hyperkalemia",r:"IV / IO / CVAD",f:()=>[["Dose","1 g (10 mL) over 2–3 min",1],["Repeat","q5 min, max 2 (3rd after 30 min if recurs)"],["Conditions","≥ 18 y"]]},
+ {n:"Salbutamol (hyperkalemia)",d:"Hyperkalemia",r:"MDI / NEB",f:()=>[["MDI","1,600 mcg (16 puffs)",1],["NEB","10 mg"],["Max","2 doses"]]},
+ {n:"Dextrose < 2 y",d:"Hypoglycemia",r:"IV · D10W",w:1,f:w=>{const g=cap(.2*w,5);return[["D10W",fmt(g,1)+" g = "+fmt(g*10,0)+" mL",1],["Rule","0.2 g/kg, max 5 g (50 mL)"],["Repeat","q10 min, max 2"]]}},
+ {n:"Midazolam",d:"Seizure · Combative · Procedural sedation (AUX)",r:"IV / IO / IM / IN / buccal",w:1,f:w=>[["Seizure IV/IO",fmt(cap(.1*w,5),1)+" mg",1],["Seizure IM/IN/buccal",fmt(cap(.2*w,10),1)+" mg"],["Seizure repeat","q5 min, max 2"],["Combative (≥ 18 y)","up to "+fmt(cap(.1*w,5),1)+" mg q5 min, total 10 mg"],["Sedation (AUX)","up to "+fmt(cap(.1*w,5),1)+" mg q5 min, total 10 mg"],["Volume",VOLNOTE]]},
+ {n:"Fentanyl",d:"Analgesia · Procedural sedation (AUX)",r:"IV / IN",w:1,f:w=>[["≥ 18 y","25–75 mcg q5 min",1],["1–17 y","up to "+fmt(cap(w,75),0)+" mcg (1 mcg/kg) q5 min"],["Max","75 mcg single, 200 mcg total"],["Sedation (AUX)","25–75 mcg, total 150 mcg"],["Patch","< 12 y"]]},
+ {n:"Morphine",d:"Analgesia · Cardiac ischemia",r:"IV / SC",w:1,f:w=>[["≥ 18 y","2–10 mg q15 min, max 20 mg",1],["1–17 y",fmt(cap(.05*w,5),1)+"–"+fmt(cap(.1*w,5),1)+" mg q15 min"],["Peds max","5 mg single, 10 mg total; patch < 12 y"],["Cardiac ischemia","2 mg IV q5 min, max 5"]]},
+ {n:"Ketamine",d:"Analgesia · Combative",r:"IV / IN / IM",w:1,f:w=>[["≥ 18 y IV",fmt(cap(.25*w,20),1)+" mg",1],["≥ 18 y IN",fmt(cap(w,75),0)+" mg"],["1–17 y (patch)","IV "+fmt(cap(.25*w,10),1)+" mg / IN "+fmt(cap(w,30),0)+" mg"],["Repeat","q15 min, max 2"],["Combative IM","18–64 y "+fmt(cap(5*w,500),0)+" mg; ≥ 65 y "+fmt(cap(3*w,300),0)+" mg"]]},
+ {n:"Hydrocortisone",d:"Suspected adrenal crisis",r:"IM / IV / IO / CVAD",w:1,f:w=>[["Dose",fmt(r10(cap(2*w,100)),0)+" mg",1],["Rule","2 mg/kg, max 100 mg, round to 10 mg"]]},
+ {n:"Lidocaine spray",d:"Orotracheal intubation",r:"Topical · 10 mg/spray",w:1,f:w=>[["Max",fmt(Math.min(5*w,200),0)+" mg ("+Math.min(Math.floor(5*w/10),20)+" sprays)",1],["Rule","5 mg/kg, max 20 sprays; GCS ≥ 4"]]},
+ {n:"Epinephrine (newborn)",d:"Newborn resuscitation",r:"IV / IO / ETT · 0.1 mg/mL",w:1,f:w=>[["IV/IO",fmt(Math.max(.01*w,.05),2)+" mg ("+fmt(Math.max(.1*w,.5),1)+" mL) q4 min",1],["ETT (1 dose)",fmt(cap(.1*w,.3),2)+" mg ("+fmt(cap(w,3),1)+" mL)"],["Conditions","< 24 h, HR < 60 after 30 s PPV + 30 s CPR"]]},
+ {n:"0.9% NaCl (ACP)",d:"Arrest · ROSC · Cardiogenic shock · IV therapy",r:"IV / IO / CVAD",w:1,f:w=>[["20 mL/kg",fmt(cap(20*w,2000),0)+" mL (arrest, hypotension; max 2,000)",1],["10 mL/kg",fmt(cap(10*w,1000),0)+" mL (ROSC, cardiogenic shock; max 1,000)"],["Maintenance","30–60 mL/h (≥ 12 y), 15 mL/h (< 12 y)"]]},
+];
+let scope=store.get("scope","pcp");
+function setScope(v){scope=v;store.set("scope",v);$("scP").setAttribute("aria-pressed",v==="pcp");$("scA").setAttribute("aria-pressed",v==="acp");
+  if(typeof renderDirs==="function"&&$("kDirs"))try{renderDirs()}catch(e){}
+  $("scNote").textContent=v==="acp"?"ACP directives first, then the PCP directives you also hold. Adult and pediatric doses are side by side; pick by age.":"";renderMeds()}
+$("scP").onclick=()=>setScope("pcp");$("scA").onclick=()=>setScope("acp");
+function medCard(m,body){return`<div class="card"><div class="med-head"><h3>${m.n}</h3><span class="route">${m.r}</span></div><p class="note" style="margin:-4px 0 0">${m.d}</p>${body}</div>`}
+const dl=rows=>`<dl class="rows">${rows.map(([a,b,big])=>`<dt>${a}</dt><dd${big?' class="big"':""}>${b}</dd>`).join("")}</dl>`;
+function renderMeds(){
+  const list=scope==="acp"?[...ACP,...PCP.filter(p=>!["Hydrocortisone"].includes(p.n))]:PCP;
+  $("medList").innerHTML=list.map(m=>{let b;if(m.w&&!kg)b=`<div class="empty">${NW}</div>`;else{const o=m.f(kg);b=typeof o==="string"?`<div class="empty">${o}</div>`:dl(o)}return medCard(m,b)}).join("");
+  doseCalc(); infusion();
+}
+
+/* ---------- generic dose calc ---------- */
+// Mass units normalised to mcg; units and mEq only convert to themselves.
+const TO={g:1e6,mg:1e3,mcg:1,units:1,mEq:1};
+const fam=u=>(u==="units"||u==="mEq")?u:"mass";
+let perKg=store.get("perKg",false);
+const DOSE_IDS=["oAmt","oUnit","oMax","sAmt","sUnit","sVol","xDrug","xTot"];
+const INF_IDS=["iDose","iUnit","iBag","iBagU","iVol","iSet"];
+function setBasis(v){perKg=v;store.set("perKg",v);$("oFlat").setAttribute("aria-pressed",!v);$("oPerKg").setAttribute("aria-pressed",v);$("oMaxF").hidden=!v;doseCalc()}
+$("oFlat").onclick=()=>setBasis(false);$("oPerKg").onclick=()=>setBasis(true);
+function showU(mcgVal,u){ // show in the ordered unit family, nicely
+  if(u==="units"||u==="mEq")return fmt(mcgVal,2)+" "+u;
+  if(mcgVal>=1e6)return fmt(mcgVal/1e6,3)+" g"; if(mcgVal>=1000)return fmt(mcgVal/1000,3)+" mg"; return fmt(mcgVal,2)+" mcg";
+}
+function doseCalc(){
+  const r=[],oA=num("oAmt"),oU=$("oUnit").value,mx=num("oMax"),sA=num("sAmt"),sU=$("sUnit").value,sV=num("sVol");
+  // stock concentration
+  if(sA>0&&sV>0){$("sConc").textContent=`${showU(sA*TO[sU]/sV,sU)}/mL`}else $("sConc").textContent="—";
+  if(!(oA>0)){$("doseOut").innerHTML=`<dt>Result</dt><dd>enter ordered dose</dd>`;store.set("dose",DOSE_IDS.map(i=>$(i).value));return}
+  let dose=oA*TO[oU];
+  if(perKg){ if(!kg){$("doseOut").innerHTML=`<dt>Result</dt><dd>enter patient weight</dd>`;return}
+    dose*=kg; if(mx>0&&dose>mx*TO[oU]){dose=mx*TO[oU];r.push(["Note","capped at max dose"])}}
+  r.unshift(["Give",showU(dose,oU),1]);
+  if(sA>0&&sV>0){
+    if(fam(oU)!==fam(sU)){r.push(["Units","ordered and stock units don't match"])}
+    else{
+      const conc=sA*TO[sU]/sV, vol=dose/conc;
+      r.push(["Draw (undiluted)",fmt(vol,2)+" mL",1]);
+      if(vol>sV)r.push(["Check","dose is more than one vial ("+fmt(vol/sV,1)+" ×)"]);
+      const xT=num("xTot"); let xD=num("xDrug"); if(!(xD>0))xD=sV;
+      if(xT>0){
+        if(xT<xD)r.push(["Dilution","final volume is less than stock drawn"]);
+        else{const amt=conc*xD,fc=amt/xT,dv=dose/fc;
+          r.push(["Add saline",fmt(xT-xD,1)+" mL"],["Final conc.",showU(fc,sU)+"/mL"],["Give (diluted)",fmt(dv,2)+" mL",1]);
+          if(dv>xT)r.push(["Check","dose exceeds the diluted syringe"]);}
+      }
+    }
+  }
+  $("doseOut").innerHTML=r.map(([a,b,big])=>`<dt>${a}</dt><dd${big?' class="big"':""}>${b}</dd>`).join("");
+  store.set("dose",DOSE_IDS.map(i=>$(i).value));
+}
+function infusion(){
+  const d=num("iDose"),[du,pk,per]=$("iUnit").value.split("|"),bA=num("iBag"),bU=$("iBagU").value,bV=num("iVol"),set=+$("iSet").value;
+  store.set("inf",INF_IDS.map(i=>$(i).value));
+  if(!(d>0&&bA>0&&bV>0)){$("iOut").innerHTML="";return}
+  if(fam(du)!==fam(bU)){$("iOut").innerHTML=`<dt>Units</dt><dd>dose and bag units don't match</dd>`;return}
+  if(pk&&!kg){$("iOut").innerHTML=`<dt>Needs</dt><dd>patient weight</dd>`;return}
+  let perMin=d*TO[du]*(pk?kg:1); if(per==="h")perMin/=60;
+  const conc=bA*TO[bU]/bV, mlh=perMin*60/conc;
+  $("iOut").innerHTML=`<dt>Bag conc.</dt><dd>${showU(conc,bU)}/mL</dd><dt>Pump rate</dt><dd class="big">${fmt(mlh,1)} mL/h</dd><dt>Gravity</dt><dd>${fmt(mlh*set/60,0)} gtt/min</dd><dt>Bag lasts</dt><dd>${fmt(bV/mlh*60,0)} min</dd>`;
+}
+(()=>{const v=store.get("dose",null);if(v)DOSE_IDS.forEach((id,i)=>$(id).value=v[i]);
+  const w=store.get("inf",null);if(w)INF_IDS.forEach((id,i)=>{if(w[i]!==undefined&&w[i]!=="")$(id).value=w[i]});})();
+DOSE_IDS.forEach(id=>$(id).addEventListener("input",doseCalc));
+INF_IDS.forEach(id=>$(id).addEventListener("input",infusion));
+
+/* ---------- generic scored list (state holds chosen option index) ---------- */
+const val=(items,st,i)=>st[i]==null?null:items[i].o[st[i]][0];
+const sumOf=(items,st)=>st.reduce((a,_,i)=>a+(val(items,st,i)||0),0);
+function scorer(listEl,items,state,onChange,hidePts){
+  listEl.innerHTML=items.map((it,i)=>{const row=it.o.every(o=>o[1].length<=12);
+    return`<div class="item"><div class="item-head"><h3>${it.t}</h3><span class="pts" id="${listEl.id}p${i}"${hidePts?" hidden":""}>–</span></div><div class="opts${row?" row":""}">${it.o.map((o,j)=>`<button class="opt" data-i="${i}" data-j="${j}" aria-pressed="false">${hidePts?"":`<b>${o[0]}</b>`}<span>${o[1]}</span></button>`).join("")}</div></div>`}).join("");
+  listEl.addEventListener("click",e=>{const b=e.target.closest(".opt");if(!b)return;const i=+b.dataset.i,j=+b.dataset.j;
+    state[i]=state[i]===j?null:j;paint();onChange();});
+  function paint(){listEl.querySelectorAll(".opt").forEach(b=>b.setAttribute("aria-pressed",state[+b.dataset.i]===+b.dataset.j));
+    items.forEach((_,i)=>{const p=$(listEl.id+"p"+i);const v=val(items,state,i);p.textContent=v==null?"–":v;p.classList.toggle("set",v!=null)})}
+  paint();return paint;
+}
+const keyOf=it=>it.k||it.t.split(" · ")[0];
+function copyText(el,btn){const t=el.textContent;
+  const sel=()=>{const r=document.createRange();r.selectNodeContents(el);const s=getSelection();s.removeAllRanges();s.addRange(r);btn.textContent="Selected, tap Copy";};
+  try{navigator.clipboard.writeText(t).then(()=>{btn.textContent="Copied";setTimeout(()=>btn.textContent="Copy",1500)},sel)}catch(e){sel()}}
+/* ---------- NIHSS ---------- */
+const NI=[
+ {t:"1a · Level of consciousness",o:[[0,"Alert"],[1,"Arousable to minor stimulation"],[2,"Needs repeated or painful stimulation"],[3,"Reflex responses only / unresponsive"]]},
+ {t:"1b · LOC questions (month, age)",o:[[0,"Both correct"],[1,"One correct"],[2,"Neither correct"]]},
+ {t:"1c · LOC commands (eyes, grip)",o:[[0,"Both correct"],[1,"One correct"],[2,"Neither correct"]]},
+ {t:"2 · Best gaze",o:[[0,"Normal"],[1,"Partial gaze palsy"],[2,"Forced deviation"]]},
+ {t:"3 · Visual fields",o:[[0,"No visual loss"],[1,"Partial hemianopia"],[2,"Complete hemianopia"],[3,"Bilateral hemianopia / blind"]]},
+ {t:"4 · Facial palsy",o:[[0,"Normal symmetry"],[1,"Minor (flattened nasolabial fold)"],[2,"Partial (lower face)"],[3,"Complete (upper and lower)"]]},
+ {t:"5a · Motor arm, left",o:[[0,"No drift for 10 s"],[1,"Drift, doesn't hit bed"],[2,"Some effort against gravity"],[3,"No effort against gravity"],[4,"No movement"]]},
+ {t:"5b · Motor arm, right",o:[[0,"No drift for 10 s"],[1,"Drift, doesn't hit bed"],[2,"Some effort against gravity"],[3,"No effort against gravity"],[4,"No movement"]]},
+ {t:"6a · Motor leg, left",o:[[0,"No drift for 5 s"],[1,"Drift, doesn't hit bed"],[2,"Some effort against gravity"],[3,"No effort against gravity"],[4,"No movement"]]},
+ {t:"6b · Motor leg, right",o:[[0,"No drift for 5 s"],[1,"Drift, doesn't hit bed"],[2,"Some effort against gravity"],[3,"No effort against gravity"],[4,"No movement"]]},
+ {t:"7 · Limb ataxia",o:[[0,"Absent"],[1,"Present in one limb"],[2,"Present in two limbs"]]},
+ {t:"8 · Sensory",o:[[0,"Normal"],[1,"Mild to moderate loss"],[2,"Severe to total loss"]]},
+ {t:"9 · Best language",o:[[0,"No aphasia"],[1,"Mild to moderate aphasia"],[2,"Severe aphasia"],[3,"Mute / global aphasia"]]},
+ {t:"10 · Dysarthria",o:[[0,"Normal"],[1,"Mild to moderate slurring"],[2,"Severe / unintelligible / mute"]]},
+ {t:"11 · Extinction / inattention",o:[[0,"No abnormality"],[1,"Inattention in one modality"],[2,"Profound, more than one modality"]]},
+];
+let nState=store.get("nihss",Array(NI.length).fill(null));
+function nUpdate(){const done=nState.filter(v=>v!=null).length,t=sumOf(NI,nState);
+  $("nTot").textContent=t;
+  const sev=t===0?"No stroke symptoms":t<=4?"Minor":t<=15?"Moderate":t<=20?"Moderate to severe":"Severe";
+  $("nLbl").innerHTML=`${done} of ${NI.length} scored<br>${done?sev:""}`;store.set("nihss",nState);
+  const pos=NI.map((it,i)=>[keyOf(it),val(NI,nState,i)]).filter(x=>x[1]);
+  $("nRep").textContent=done?`NIHSS ${t} (${sev.toLowerCase()})${pos.length?": "+pos.map(x=>x[0]+" "+x[1]).join(", "):""}${done<NI.length?` [${NI.length-done} items not scored]`:""}`:"Score items to build the line.";}
+$("nCopy").onclick=()=>copyText($("nRep"),$("nCopy"));
+$("nSave").onclick=()=>{if(nState.some(v=>v!=null))saveRecent($("nRep").textContent,$("nSave"))};
+const nPaint=scorer($("nList"),NI,nState,nUpdate);nUpdate();
+$("nReset").onclick=()=>{nState.fill(null);nPaint();nUpdate();window.scrollTo(0,0)};
+
+/* ---------- Advanced scales ---------- */
+const YN=[[0,"No"],[1,"Yes"]], yn=(pts)=>[[0,"No"],[pts,"Yes"]];
+const anyYes=(st,idx)=>idx.some(i=>st[i]===1), allAns=(st,idx)=>idx.every(i=>st[i]!=null);
+const SCALES=[
+ {id:"news2",n:"NEWS2",full:"National Early Warning Score 2",use:"Used on most Ontario wards and many EDs to flag deterioration. Use SpO2 scale 1 unless the patient has a target of 88–92% (e.g. hypercapnic COPD).",
+  items:[
+   {k:"RR",t:"Respiratory rate",o:[[3,"≤ 8"],[1,"9–11"],[0,"12–20"],[2,"21–24"],[3,"≥ 25"]]},
+   {k:"SpO2",t:"SpO2 (scale 1)",o:[[3,"≤ 91%"],[2,"92–93%"],[1,"94–95%"],[0,"≥ 96%"]]},
+   {k:"O2",t:"Air or oxygen",o:[[0,"Room air"],[2,"Oxygen"]]},
+   {k:"SBP",t:"Systolic BP",o:[[3,"≤ 90"],[2,"91–100"],[1,"101–110"],[0,"111–219"],[3,"≥ 220"]]},
+   {k:"HR",t:"Heart rate",o:[[3,"≤ 40"],[1,"41–50"],[0,"51–90"],[1,"91–110"],[2,"111–130"],[3,"≥ 131"]]},
+   {k:"LOC",t:"Consciousness",o:[[0,"Alert"],[3,"New confusion, V, P or U"]]},
+   {k:"T",t:"Temperature °C",o:[[3,"≤ 35.0"],[1,"35.1–36.0"],[0,"36.1–38.0"],[1,"38.1–39.0"],[2,"≥ 39.1"]]}],
+  interp:(st,t,it)=>{const three=st.some((v,i)=>val(it,st,i)===3);
+   return t>=7?["High risk: urgent/emergency response","crit"]:t>=5?["Medium risk: urgent review","warn"]:three?["Low–medium: a single parameter scored 3","warn"]:["Low risk","ok"]}},
+ {id:"qsofa",n:"qSOFA",full:"Quick SOFA",use:"Bedside sepsis screen for patients with suspected infection. Not a diagnosis, but ≥ 2 predicts poor outcome and is worth stating with your sepsis concern.",
+  items:[{k:"RR≥22",t:"Respiratory rate ≥ 22",o:YN},{k:"AMS",t:"Altered mentation (GCS < 15)",o:YN},{k:"SBP≤100",t:"Systolic BP ≤ 100",o:YN}],
+  interp:(st,t)=>t>=2?["≥ 2: high risk of poor outcome","crit"]:["< 2: lower risk (doesn't rule out sepsis)","ok"]},
+ {id:"heart",n:"HEART",full:"HEART score for chest pain",use:"ED risk tool for 6-week major adverse cardiac events. Prehospital you rarely have a troponin, so report it as a HEAR score (troponin not available).",
+  items:[
+   {k:"H",t:"History",o:[[0,"Slightly suspicious"],[1,"Moderately suspicious"],[2,"Highly suspicious"]]},
+   {k:"E",t:"ECG",o:[[0,"Normal"],[1,"Non-specific repolarization changes"],[2,"Significant ST deviation"]]},
+   {k:"A",t:"Age",o:[[0,"< 45"],[1,"45–64"],[2,"≥ 65"]]},
+   {k:"R",t:"Risk factors",o:[[0,"None known"],[1,"1–2 risk factors"],[2,"≥ 3, or known atherosclerotic disease"]]},
+   {k:"T",t:"Troponin",o:[[0,"Not available (prehospital)"],[0,"≤ normal limit"],[1,"1–3× normal limit"],[2,"> 3× normal limit"]]}],
+  interp:(st,t)=>t>=7?["High (7–10): MACE ≈ 50–65%","crit"]:t>=4?["Moderate (4–6): MACE ≈ 12–17%","warn"]:["Low (0–3): MACE ≈ 1–2%","ok"],
+  title:st=>st[4]===0?"HEAR":"HEART"},
+ {id:"wells",n:"Wells PE",full:"Wells criteria for pulmonary embolism",use:"Pretest probability of PE. Hospitals use it to decide between D-dimer and CT. Pair with PERC when the score is low.",
+  items:[
+   {k:"DVT signs",t:"Clinical signs of DVT",o:yn(3)},{k:"PE most likely",t:"PE is the most likely diagnosis",o:yn(3)},
+   {k:"HR>100",t:"Heart rate > 100",o:yn(1.5)},{k:"Immobile/surgery",t:"Immobilized ≥ 3 days or surgery in last 4 weeks",o:yn(1.5)},
+   {k:"Prior VTE",t:"Previous DVT or PE",o:yn(1.5)},{k:"Hemoptysis",t:"Hemoptysis",o:yn(1)},{k:"Cancer",t:"Active malignancy",o:yn(1)}],
+  interp:(st,t)=>[(t>6?"High":t>=2?"Moderate":"Low")+" probability; PE "+(t>4?"likely (> 4)":"unlikely (≤ 4)"),t>6?"crit":t>4?"warn":"ok"]},
+ {id:"perc",n:"PERC",full:"PE Rule-out Criteria",rule:1,use:"Only for patients you already judge low risk for PE. If every answer is no, PE is effectively ruled out without testing.",
+  items:[{k:"Age≥50",t:"Age ≥ 50",o:YN},{k:"HR≥100",t:"Heart rate ≥ 100",o:YN},{k:"SpO2<95",t:"SpO2 < 95% on room air",o:YN},{k:"Leg swelling",t:"Unilateral leg swelling",o:YN},
+   {k:"Hemoptysis",t:"Hemoptysis",o:YN},{k:"Recent surgery/trauma",t:"Surgery or trauma in last 4 weeks",o:YN},{k:"Prior VTE",t:"Previous DVT or PE",o:YN},{k:"Hormones",t:"Estrogen or hormone use",o:YN}],
+  interp:st=>st.some(v=>v===1)?["PERC positive: can't rule out","warn"]:st.every(v=>v!=null)?["PERC negative (if pretest risk is low)","ok"]:["Incomplete",""]},
+ {id:"crb65",n:"CRB-65",full:"Pneumonia severity (CURB-65 without urea)",use:"Hospital uses CURB-65 once the urea is back. CRB-65 is the version you can score in the field.",
+  items:[{k:"Confusion",t:"New confusion",o:YN},{k:"RR≥30",t:"Respiratory rate ≥ 30",o:YN},{k:"BP",t:"SBP < 90 or DBP ≤ 60",o:YN},{k:"Age≥65",t:"Age ≥ 65",o:YN}],
+  interp:(st,t)=>t>=3?["High risk (3–4)","crit"]:t>=1?["Increased risk (1–2)","warn"]:["Low risk (0)","ok"]},
+ {id:"lams",n:"LAMS",full:"Los Angeles Motor Scale",use:"Quick large-vessel occlusion screen. ≥ 4 suggests LVO and supports EVT-centre notification under your stroke protocol.",
+  items:[{k:"Face",t:"Facial droop",o:[[0,"Absent"],[1,"Present"]]},{k:"Arm",t:"Arm drift",o:[[0,"Absent"],[1,"Drifts down"],[2,"Falls rapidly"]]},{k:"Grip",t:"Grip strength",o:[[0,"Normal"],[1,"Weak grip"],[2,"No grip"]]}],
+  interp:(st,t)=>t>=4?["≥ 4: suggests large-vessel occlusion","crit"]:["< 4: LVO less likely","ok"]},
+ {id:"cpss",n:"Cincinnati",full:"Cincinnati Prehospital Stroke Scale",rule:1,use:"Any one abnormal finding makes stroke likely. Pair with LAMS for LVO and last known well time in your handoff.",
+  items:[{k:"Facial droop",t:"Facial droop (smile): one side doesn't move as well",o:[[0,"Normal"],[1,"Abnormal"]]},
+   {k:"Arm drift",t:"Arm drift (eyes closed, 10 s): one arm drifts down",o:[[0,"Normal"],[1,"Abnormal"]]},
+   {k:"Speech",t:"Speech: slurred, wrong words or unable to speak",o:[[0,"Normal"],[1,"Abnormal"]]}],
+  interp:st=>st.some(v=>v===1)?["Positive: stroke likely","crit"]:st.every(v=>v!=null)?["Negative","ok"]:["Incomplete",""]},
+ {id:"cthead",n:"CT Head Rule",full:"Canadian CT Head Rule",rule:1,use:"For minor head injury with witnessed LOC, amnesia or disorientation and GCS 13–15. Doesn't apply if under 16, on anticoagulants, or after a seizure.",
+  items:[{k:"GCS<15 at 2h",t:"GCS < 15 at 2 h after injury",o:YN},{k:"Skull fx",t:"Suspected open or depressed skull fracture",o:YN},{k:"Basal skull fx",t:"Signs of basal skull fracture",o:YN},
+   {k:"Vomiting≥2",t:"Vomiting ≥ 2 episodes",o:YN},{k:"Age≥65",t:"Age ≥ 65",o:YN},{k:"Amnesia≥30min",t:"Retrograde amnesia ≥ 30 min before impact",o:YN},{k:"Dangerous mech",t:"Dangerous mechanism (pedestrian struck, ejection, fall > 3 ft / 5 stairs)",o:YN}],
+  interp:st=>anyYes(st,[0,1,2,3,4])?["High risk: CT indicated","crit"]:anyYes(st,[5,6])?["Medium risk: CT indicated","warn"]:allAns(st,[0,1,2,3,4,5,6])?["Rule negative: no CT by this rule","ok"]:["Incomplete",""]},
+ {id:"cspine",n:"C-Spine Rule",full:"Canadian C-Spine Rule",rule:1,use:"The hospital version, for alert (GCS 15) stable trauma patients. Your Ontario spinal motion restriction standard governs what you do in the field.",
+  items:[{k:"Age≥65",t:"High risk: age ≥ 65",o:YN},{k:"Dangerous mech",t:"High risk: dangerous mechanism",o:YN},{k:"Paresthesias",t:"High risk: paresthesias in extremities",o:YN},
+   {k:"Simple rear-end",t:"Low risk: simple rear-end MVC",o:YN},{k:"Sitting",t:"Low risk: sitting position in ED",o:YN},{k:"Ambulatory",t:"Low risk: ambulatory at any time",o:YN},
+   {k:"Delayed pain",t:"Low risk: delayed onset of neck pain",o:YN},{k:"No midline tenderness",t:"Low risk: no midline C-spine tenderness",o:YN},{k:"Rotates 45°",t:"Able to actively rotate neck 45° left and right",o:YN}],
+  interp:st=>{if(anyYes(st,[0,1,2]))return["Imaging: high-risk factor","crit"];if(!allAns(st,[0,1,2]))return["Incomplete",""];
+   if(allAns(st,[3,4,5,6,7])&&!anyYes(st,[3,4,5,6,7]))return["Imaging: no low-risk factor","warn"];
+   if(!anyYes(st,[3,4,5,6,7]))return["Incomplete",""];
+   return st[8]===1?["No imaging needed by this rule","ok"]:st[8]===0?["Imaging: unable to rotate 45°","warn"]:["Low-risk factor present: assess rotation",""]}},
+ {id:"rass",n:"RASS",full:"Richmond Agitation-Sedation Scale",use:"ICU and ED standard for agitation and sedation. Useful to report before and after midazolam or ketamine.",
+  items:[{k:"RASS",t:"Patient state",o:[[4,"Combative, danger to staff"],[3,"Very agitated, pulls tubes"],[2,"Agitated, fights ventilation"],[1,"Restless, not aggressive"],[0,"Alert and calm"],[-1,"Drowsy, wakes to voice > 10 s"],[-2,"Light sedation, wakes to voice < 10 s"],[-3,"Moderate, moves to voice, no eye contact"],[-4,"Deep, moves only to physical stimulation"],[-5,"Unrousable"]]}],
+  interp:(st,t)=>st[0]==null?["Select one",""]:[t>=2?"Agitated":t<=-3?"Deeply sedated":"Near target","" ]},
+ {id:"fourat",n:"4AT",full:"4AT delirium screen",use:"Quick delirium screen used in EDs and on geriatric wards. Reporting 'new delirium' versus 'baseline dementia' changes the workup.",
+  items:[{k:"Alertness",t:"Alertness",o:[[0,"Normal, or mildly sleepy < 10 s after waking"],[4,"Clearly abnormal"]]},
+   {k:"AMT4",t:"AMT4: age, date of birth, place, current year",o:[[0,"No mistakes"],[1,"1 mistake"],[2,"2 or more, or untestable"]]},
+   {k:"Attention",t:"Months of the year backwards",o:[[0,"7 or more correct"],[1,"Starts but < 7, or refuses"],[2,"Untestable (too unwell, drowsy)"]]},
+   {k:"Acute change",t:"Acute change or fluctuating course (last 2 weeks)",o:[[0,"No"],[4,"Yes"]]}],
+  interp:(st,t)=>t>=4?["≥ 4: possible delirium","crit"]:t>=1?["1–3: possible cognitive impairment","warn"]:["0: delirium unlikely","ok"]},
+ {id:"cfs",n:"Frailty",full:"Clinical Frailty Scale",use:"Rate baseline function from about 2 weeks before this illness. Ontario EDs and ICUs use it in goals-of-care and admission decisions.",
+  items:[{k:"CFS",t:"Baseline function",o:[[1,"Very fit, robust, exercises regularly"],[2,"Fit, no active disease"],[3,"Managing well, medical problems controlled"],[4,"Living with very mild frailty, slowed or tired"],[5,"Mild frailty: help with IADLs (shopping, finances)"],[6,"Moderate frailty: help with outdoor activities and bathing"],[7,"Severe frailty: dependent for personal care"],[8,"Very severe frailty: completely dependent, near end of life"],[9,"Terminally ill, life expectancy < 6 months"]]}],
+  interp:(st,t)=>st[0]==null?["Select one",""]:[t>=7?"Severely frail":t>=5?"Frail":t===4?"Very mild frailty":"Not frail",t>=7?"crit":t>=5?"warn":"ok"]},
+ {id:"apgar",n:"APGAR",full:"APGAR score",use:"Score at 1 and 5 minutes after birth; repeat every 5 minutes if under 7. Report both times.",
+  items:[{k:"A",t:"Appearance (colour)",o:[[0,"Blue or pale"],[1,"Body pink, hands/feet blue"],[2,"Pink all over"]]},{k:"P",t:"Pulse",o:[[0,"Absent"],[1,"< 100"],[2,"≥ 100"]]},
+   {k:"G",t:"Grimace (reflex irritability)",o:[[0,"No response"],[1,"Grimace"],[2,"Cry, cough or sneeze"]]},{k:"A2",t:"Activity (tone)",o:[[0,"Limp"],[1,"Some flexion"],[2,"Active motion"]]},
+   {k:"R",t:"Respiration",o:[[0,"Absent"],[1,"Slow or irregular"],[2,"Good, crying"]]}],
+  interp:(st,t)=>t>=7?["Reassuring (7–10)","ok"]:t>=4?["Moderately abnormal (4–6)","warn"]:["Low (0–3)","crit"]},
+];
+function lineFor(sc,st){
+  const done=st.filter(v=>v!=null).length;if(!done)return null;
+  const t=sumOf(sc.items,st),[txt]=sc.interp(st,t,sc.items),name=sc.title?sc.title(st):sc.n;let line;
+  if(sc.rule){const pos=sc.items.filter((_,i)=>st[i]===1).map(keyOf);line=`${name}: ${txt}${pos.length?" ("+pos.join(", ")+")":""}`;}
+  else if(sc.items.length===1)line=`${name} ${t}: ${sc.items[0].o[st[0]][1]}`;
+  else line=`${name} ${fmt(t,1)} (${txt}): ${sc.items.map((it,i)=>st[i]==null?null:`${keyOf(it)} ${val(sc.items,st,i)}`).filter(Boolean).join(", ")}`;
+  if(done<sc.items.length)line+=` [${sc.items.length-done} not assessed]`;
+  return line;
+}
+/* ---------- Recent (scores only, no patient details) ---------- */
+let recent=store.get("recent",[]);
+function saveRecent(line,btn){if(!line||line.startsWith("Score items"))return;recent.unshift({t:Date.now(),l:line});recent=recent.slice(0,40);store.set("recent",recent);
+  if(btn){btn.textContent="Saved";setTimeout(()=>btn.textContent="Save to Recent",1500)}}
+const stamp=t=>{const d=new Date(t),p=n=>String(n).padStart(2,"0");return`${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`};
+function renderRecent(){
+  document.querySelectorAll("#advPick .chip").forEach(b=>b.setAttribute("aria-pressed",b.dataset.id==="recent"));
+  $("advBody").innerHTML=`<h3>Recent scores</h3><p class="note">Kept on this phone only, newest first, last 40. Holds the score line and time, nothing else.</p>
+   ${recent.length?recent.map((r,i)=>`<div class="card rec"><time>${stamp(r.t)}</time><p class="report" id="rc${i}">${r.l.replace(/</g,"&lt;")}</p><div style="display:flex;gap:8px"><button class="btn sm" data-c="${i}">Copy</button><button class="btn sm" data-d="${i}">Delete</button></div></div>`).join("")
+     +`<button class="btn" id="rClr" style="align-self:flex-start">Clear all</button>`:`<div class="card"><div class="empty">No saved scores yet. Score a scale and tap Save to Recent.</div></div>`}`;
+  $("advBody").onclick=e=>{const c=e.target.closest("[data-c]"),d=e.target.closest("[data-d]");
+    if(c)copyText($("rc"+c.dataset.c),c);
+    if(d){recent.splice(+d.dataset.d,1);store.set("recent",recent);renderRecent()}
+    if(e.target.id==="rClr"){if(e.target.dataset.arm){recent=[];store.set("recent",recent);renderRecent()}else{e.target.dataset.arm=1;e.target.textContent="Tap again to clear all"}}};
+}
+/* ---------- Ontario protocol checklists (BLS PCS v3.4 prompt cards) ---------- */
+const PROTO=[
+ {id:"stroke",n:"Stroke bypass",full:"Acute Stroke Bypass Protocol",src:"BLS PCS v3.4, Stroke Prompt Card",
+  use:"Tap what applies. Untapped items count as not present.",
+  g:[["Indication 1: new onset of at least one",[["arm","Unilateral arm/leg weakness or drift"],["speech","Slurred speech, inappropriate words or mute"],["face","Unilateral facial droop"]]],
+     ["Indication 2",[["win6","Can arrive at a Designated Stroke Centre within 6 h of clear onset / last seen in usual health"]]],
+     ["LVO screen (within 24 h of onset)",[["lams4","LAMS ≥ 4"]]],
+     ["Contraindications (any excludes)",[["c1","CTAS 1 and/or uncorrected airway, breathing or circulatory problem"],["c2","Symptoms resolved before paramedic arrival or assessment"],["c3","Blood sugar < 3 mmol/L (not if symptoms persist after correction)"],["c4","Seizure at onset or observed by paramedics"],["c5","GCS < 10"],["c6","Terminally ill or palliative care patient"],["c7","Out-of-hospital transport will exceed 2 h"]]]],
+  interp:s=>{const ci=["c1","c2","c3","c4","c5","c6","c7"].filter(k=>s.has(k)),sx=["arm","speech","face"].some(k=>s.has(k));
+   const lvo=s.has("lams4")?" LVO Clinical Screen positive: CTAS 2; tell the receiving hospital.":" Tell the receiving hospital whether the LVO Clinical Screen is positive or negative.";
+   if(ci.length)return["Excluded from Acute Stroke Protocol","crit"];
+   if(sx&&s.has("win6"))return["Meets Acute Stroke Protocol: notify CACC/ACS for destination."+lvo,"ok"];
+   if(sx)return["Symptoms present; confirm the 6 h window to apply the protocol","warn"];
+   return["Not met",""]}},
+ {id:"stemi",n:"STEMI bypass",full:"STEMI Hospital Bypass Protocol",src:"BLS PCS v3.4, STEMI Prompt Card",
+  use:"All four indications are required. Once activated, continue even if the ECG normalizes.",
+  g:[["Indications (all required)",[["i1","≥ 18 years of age"],["i2","Chest pain or equivalent consistent with ischemia/MI"],["i3","Onset of current episode < 12 h"],["i4","12-lead: ≥ 2 mm STE in 2 contiguous V1–V3, and/or ≥ 1 mm STE in 2 other contiguous leads, or computer STEMI you agree with"]]],
+     ["Contraindications (any excludes)",[["c1","CTAS 1 and unable to secure airway or ventilate"],["c2","LBBB, ventricular paced rhythm or other STEMI imitator"],["c3","Transport to PCI centre ≥ 60 min from patient contact"],["c4","PCP diversion: mod–severe resp distress or CPAP, instability or symptomatic SBP < 90, VSA without ROSC"],["c5","ACP diversion: inadequate ventilation despite assistance, instability not amenable to ACP care, VSA without ROSC"]]]],
+  interp:s=>{const ci=["c1","c2","c3","c4","c5"].filter(k=>s.has(k));if(ci.length)return[ci.some(k=>k==="c3"||k==="c4"||k==="c5")?"Excluded (the cardiology program may still accept)":"Excluded from STEMI bypass","crit"];
+   return ["i1","i2","i3","i4"].every(k=>s.has(k))?["Meets STEMI bypass: notify CACC/ACS","ok"]:["Not met: all four indications needed",""]}},
+ {id:"fttg",n:"Trauma triage",full:"Field Trauma Triage Standard",src:"BLS PCS v3.4, FTTG Prompt Card",
+  use:"Steps 1–2 send directly to the Lead Trauma Hospital (LTH) when land transport is under 30 min (up to 60 min per service PPS).",
+  g:[["Transport",[["t30","Land transport to LTH / designated equivalent < 30 min*"],["air","Unable to secure airway, or survival to LTH unlikely"]]],
+     ["Step 1: physiological",[["p1","Does not follow commands"],["p2","SBP < 90"],["p3","RR < 10 or ≥ 30, or needs ventilatory support (< 20 if < 1 y)"]]],
+     ["Step 2: anatomical",[["a1","Penetrating injury: head, neck, torso, or limb proximal to elbow/knee"],["a2","Chest wall instability or deformity (e.g. flail chest)"],["a3","Two or more proximal long-bone fractures"],["a4","Crushed, de-gloved, mangled or pulseless extremity"],["a5","Amputation proximal to wrist or ankle"],["a6","Pelvic fractures"],["a7","Open or depressed skull fracture"],["a8","Paralysis"]]],
+     ["Step 3: mechanism",[["m1","Fall: adult ≥ 6 m; child < 15 y ≥ 3 m or 2–3× height"],["m2","Intrusion ≥ 0.3 m occupant site or ≥ 0.5 m any site"],["m3","Ejection (partial or complete)"],["m4","Death in same passenger compartment"],["m5","Telemetry consistent with high-risk injury"],["m6","Pedestrian/cyclist thrown, run over or struck ≥ 30 km/h"],["m7","Motorcycle crash ≥ 30 km/h"]]],
+     ["Step 4: special",[["s1","Age > 55 (risk rises); SBP < 110 may be shock after 65"],["s2","Anticoagulation or bleeding disorder"],["s3","Burns with trauma mechanism"],["s4","Pregnancy ≥ 20 weeks"]]],
+     ["Penetrating exception",[["pen","Penetrating torso/head/neck, vital signs absent, not subject to TOR"]]]],
+  interp:s=>{const any=p=>[...s].some(k=>k[0]===p&&k.length===2&&/\d/.test(k[1]));
+   const st1=any("p"),st2=any("a"),st3=any("m"),st4=any("s"),t=s.has("t30");
+   if(s.has("pen")&&t)return["Penetrating trauma, VSA not under TOR: transport directly to LTH","crit"];
+   if(st1||st2){if(s.has("air"))return["Step "+(st1?"1":"2")+" met, but airway/survival issue: closest ED","crit"];
+     return[t?"Step "+(st1?"1":"2")+" met: transport directly to LTH":"Step "+(st1?"1":"2")+" met; LTH ≥ 30 min: follow local PPS / consider air","crit"]}
+   if(st3||st4)return[(st3?"Step 3":"Step 4")+" met: determine need for LTH (judgement; may patch BHP)","warn"];
+   return["No FTTG criteria selected",""]}},
+ {id:"smr",n:"SMR",full:"Spinal Motion Restriction Standard",src:"BLS PCS v3.4, SMR Prompt Card",
+  use:"This standard doesn't clear the spine in blunt trauma. It identifies who doesn't need SMR.",
+  g:[["MOI suggestive of spine injury",[["mi","Trauma with neck/back pain, sports, diving/submersion, explosion, fall, pedestrian struck, electrocution, lightning"],["mp","Penetrating trauma to head, neck or torso"]]],
+     ["Risk criteria (any)",[["r1","Neck or back pain"],["r2","Spine tenderness"],["r3","Neurologic signs or symptoms"],["r4","Altered LOC"],["r5","Suspected drug or alcohol intoxication"],["r6","Distracting painful injury"],["r7","Anatomic deformity of the spine"],["r8","High-energy MOI: fall > 3 ft / 5 stairs, axial load, MVC ≥ 100 km/h, rollover, ejection, bus/truck, ATV, bicycle"],["r9","Age ≥ 65, including fall from standing"]]]],
+  interp:s=>{const moi=s.has("mi")||s.has("mp"),risk=[1,2,3,4,5,6,7,8,9].some(i=>s.has("r"+i));
+   if(!moi)return["No MOI selected",""];
+   const penAll=s.has("mp")&&![2,3,4,5,6,7].some(i=>s.has("r"+i));
+   if(s.has("mp")&&penAll&&!s.has("mi"))return["Penetrating trauma with all modifiers absent: no SMR","ok"];
+   if(!risk)return["MOI present, no risk criteria: no SMR required","ok"];
+   return["Apply SMR: cervical collar only, minimize spinal movement, stretcher straps","crit"]}},
+];
+function protoLine(p,s){const[t]=p.interp(s);const on=p.g.flatMap(g=>g[1]).filter(([k])=>s.has(k)).map(([,l])=>l.split(/[:(,]/)[0].trim());return`${p.full}: ${t}${on.length?" ["+on.join("; ")+"]":""}`}
+function renderProto(p){
+  document.querySelectorAll("#advPick .chip").forEach(b=>b.setAttribute("aria-pressed",b.dataset.id===p.id));
+  const s=new Set(store.get("pr_"+p.id,[]));
+  $("advBody").innerHTML=`<h3>${p.full}</h3><p class="note">${p.use} <i>${p.src}.</i></p>
+   <div class="total"><div class="lbl" id="prLbl" style="flex:1"></div><button id="prReset">Reset</button></div>
+   ${p.g.map(([gt,items])=>`<div class="card"><h3>${gt}</h3><div class="opts">${items.map(([k,l])=>`<button class="opt" data-k="${k}" aria-pressed="false"><b>${"✓"}</b><span>${l}</span></button>`).join("")}</div></div>`).join("")}
+   <div class="card"><h3>Report line</h3><p class="report" id="prRep"></p><div style="display:flex;gap:8px"><button class="btn" id="prCopy">Copy</button><button class="btn" id="prSave">Save to Recent</button></div></div>`;
+  const upd=()=>{store.set("pr_"+p.id,[...s]);$("advBody").querySelectorAll(".opt").forEach(b=>b.setAttribute("aria-pressed",s.has(b.dataset.k)));
+    const[t,sev]=p.interp(s);$("prLbl").innerHTML=`<span class="${sev==="crit"?"":""}">${t}</span>`;$("prRep").textContent=s.size?protoLine(p,s):"Tap items to build the line.";};
+  $("advBody").onclick=e=>{const b=e.target.closest(".opt");if(b){s.has(b.dataset.k)?s.delete(b.dataset.k):s.add(b.dataset.k);upd()}
+    if(e.target.id==="prReset"){s.clear();upd()}if(e.target.id==="prCopy")copyText($("prRep"),e.target);if(e.target.id==="prSave"&&s.size)saveRecent($("prRep").textContent,e.target)};
+  upd();
+}
+
+const HOW={"news2": "<li>Measure all seven. Count RR for a full 30–60 s.</li><li>SpO2 uses Scale 1 (this app). Hospitals switch to Scale 2 for patients with a prescribed target of 88–92%, e.g. hypercapnic COPD.</li><li>Any supplemental oxygen scores 2.</li><li>Consciousness is ACVPU: new confusion, or responds only to voice or pain, or unresponsive, scores 3.</li><li>Escalation: total ≥ 5 or any single 3 needs urgent review; ≥ 7 is an emergency.</li>", "qsofa": "<li>Use only when you suspect infection.</li><li>One point each: RR ≥ 22, any altered mentation (GCS &lt; 15), SBP ≤ 100.</li><li>≥ 2 flags higher risk of death or ICU stay. It isn't a sepsis diagnosis, and &lt; 2 doesn't rule sepsis out.</li>", "heart": "<li>For chest pain without STEMI.</li><li><b>History:</b> 0 = non-specific; 1 = mixed features; 2 = mainly typical (pressure, radiation, exertional, relieved by nitro).</li><li><b>ECG:</b> 1 = LBBB, LVH, paced rhythm or repolarization changes; 2 = ST depression or elevation not explained by those.</li><li><b>Risk factors:</b> hypertension, high cholesterol, diabetes, obesity (BMI &gt; 30), smoking (current or quit ≤ 3 months), family history (parent/sibling with CVD before 65). Score 2 for ≥ 3, or any known atherosclerotic disease (prior MI, PCI/CABG, stroke/TIA, PAD).</li><li><b>Troponin:</b> pick \"not available\" prehospital and report it as HEAR.</li>", "wells": "<li>\"PE most likely\" is your judgement that PE is more likely than any alternative diagnosis.</li><li>Immobilization means bed rest ≥ 3 days; surgery means within the last 4 weeks.</li><li>Malignancy means treatment within 6 months or palliative.</li><li>Report both tiers: &gt; 6 high, 2–6 moderate, &lt; 2 low; and PE likely (&gt; 4) or unlikely (≤ 4).</li>", "perc": "<li>Use only when your gestalt says PE risk is already low (under about 15%).</li><li>All eight must be absent to rule PE out.</li><li>Hormone use: oral contraceptives, HRT or other estrogen.</li><li>Recent surgery or trauma: within 4 weeks and needing hospitalization or general anesthesia.</li>", "crb65": "<li>Confusion means new disorientation to person, place or time.</li><li>One point each.</li><li>The hospital adds urea &gt; 7 mmol/L to make CURB-65.</li>", "cpss": "<li><b>Facial droop:</b> ask the patient to smile or show their teeth.</li><li><b>Arm drift:</b> eyes closed, both arms straight out, palms up, for 10 s.</li><li><b>Speech:</b> have them repeat a simple sentence (\"The sky is blue in Toronto\"). Slurred, wrong words or no speech is abnormal.</li><li>Any one abnormal finding is positive.</li>", "lams": "<li><b>Face:</b> ask the patient to smile or show their teeth.</li><li><b>Arm:</b> arms out 10 s (90° sitting, 45° lying). Drifts down = 1; falls rapidly = 2.</li><li><b>Grip:</b> have them squeeze your fingers with both hands and compare. Weak = 1; none = 2.</li><li>Score the weaker side.</li><li>Ontario Acute Stroke Protocol: screen everyone within 24 h of onset. ≥ 4 means CTAS 2 and an LVO Clinical Screen positive report to the receiving hospital.</li>", "cthead": "<li>Applies to GCS 13–15 after head injury with witnessed LOC, definite amnesia or witnessed disorientation.</li><li>Doesn't apply if under 16, on anticoagulants, or after a seizure.</li><li>Dangerous mechanism: pedestrian struck, ejection from a vehicle, or fall &gt; 3 ft or 5 stairs.</li><li>Any high-risk factor predicts need for neurosurgery; a medium-risk factor predicts brain injury on CT.</li>", "cspine": "<li>For alert (GCS 15), stable trauma patients.</li><li><b>Step 1:</b> any high-risk factor means imaging. Dangerous mechanism: fall ≥ 3 ft or 5 stairs, axial load, MVC &gt; 100 km/h, rollover, ejection, motorized recreational vehicle, or bicycle collision.</li><li><b>Step 2:</b> you need at least one low-risk factor before testing range of motion. A rear-end collision isn't \"simple\" if the car was pushed into traffic, hit by a bus or truck, rolled, or hit at high speed.</li><li><b>Step 3:</b> ask the patient to actively turn their head 45° left and right. If they can, no imaging.</li><li>In the field, the BLS PCS SMR Standard (Ontario protocols above) is what you follow.</li>", "fourat": "<li><b>Alertness:</b> observe. If asleep, try to wake with voice or a touch on the shoulder.</li><li><b>AMT4:</b> ask age, date of birth, place (name of hospital or building), and current year.</li><li><b>Attention:</b> \"Tell me the months of the year backwards, starting at December.\" One prompt of \"What's the month before December?\" is allowed.</li><li><b>Acute change:</b> get it from family, a caregiver or notes. Has alertness, cognition or other mental function changed in the last 2 weeks, and is it still fluctuating?</li>", "cfs": "<li>Rate baseline function about 2 weeks before this illness, from the patient or family.</li><li>4 = independent but slowed or limited by symptoms.</li><li>5 = needs help with higher-order activities: finances, transport, heavy housework, medications.</li><li>6 = needs help with all outside activities and housekeeping, stairs and bathing.</li><li>7 = dependent for personal care.</li><li>9 = terminally ill with life expectancy under 6 months, even if not otherwise frail.</li><li>Validated for age 65+; use with care in younger patients or a stable single disability.</li>", "rass": "<li><b>Observe 30 s.</b> Alert and calm is 0. Restless or agitated is +1 to +4.</li><li><b>If not alert,</b> say their name and ask them to open their eyes and look at you. Eye contact over 10 s = −1; under 10 s = −2; movement but no eye contact = −3.</li><li><b>If there's no response to voice,</b> shake the shoulder or rub the sternum. Any movement = −4; none = −5.</li>", "apgar": "<li>Score at 1 and 5 minutes after birth. If under 7 at 5 minutes, repeat every 5 minutes up to 20 minutes.</li><li>Never delay resuscitation to score.</li><li>Each item scores 0–2. Colour: most healthy newborns score 1 at 1 minute.</li>"};
+let advId=store.get("advId","stroke");
+$("advPick").innerHTML=`<button class="chip" data-id="recent" aria-pressed="false"><strong>Recent</strong></button>`
+  +`<p class="note" style="width:100%;margin:6px 0 0"><b>Ontario protocols</b> · BLS PCS v3.4</p>`+PROTO.map(p=>`<button class="chip" data-id="${p.id}" aria-pressed="false">${p.n}</button>`).join("")
+  +`<p class="note" style="width:100%;margin:6px 0 0"><b>Hospital and clinical scores</b> · general references, not Ontario standards</p>`+SCALES.map(sc=>`<button class="chip" data-id="${sc.id}" aria-pressed="false">${sc.n}</button>`).join("");
+$("advPick").addEventListener("click",e=>{const b=e.target.closest(".chip");if(b){advId=b.dataset.id;store.set("advId",advId);renderAdv()}});
+function renderAdv(){
+  $("advBody").onclick=null;
+  if(advId==="recent")return renderRecent();
+  {const p=PROTO.find(x=>x.id===advId);if(p)return renderProto(p);}
+  const sc=SCALES.find(x=>x.id===advId)||SCALES[0];
+  document.querySelectorAll("#advPick .chip").forEach(b=>b.setAttribute("aria-pressed",b.dataset.id===sc.id));
+  let st=store.get("adv_"+sc.id,null); if(!st||st.length!==sc.items.length)st=Array(sc.items.length).fill(null);
+  $("advBody").innerHTML=`<h3>${sc.full}</h3><p class="note">${sc.use}</p>${HOW[sc.id]?`<details class="how" open><summary>How to score</summary><ul>${HOW[sc.id]}</ul></details>`:""}
+   <div class="total"><div class="n" id="aTot">–</div><div class="lbl" id="aLbl" style="flex:1"></div><button id="aReset">Reset</button></div>
+   <div id="aList" style="display:flex;flex-direction:column;gap:10px"></div>
+   <div class="card"><h3>Report line</h3><p class="report" id="aRep"></p><div style="display:flex;gap:8px"><button class="btn" id="aCopy">Copy</button><button class="btn" id="aSave">Save to Recent</button></div></div>`;
+  const upd=()=>{store.set("adv_"+sc.id,st);const t=sumOf(sc.items,st),done=st.filter(v=>v!=null).length,[txt,sev]=sc.interp(st,t,sc.items);
+    const name=sc.title?sc.title(st):sc.n;
+    $("aTot").textContent=sc.rule?(done?(sev==="ok"?"Neg":sev?"Pos":"…"):"–"):(done?fmt(t,1):"–");
+    $("aLbl").innerHTML=`<span>${done?txt:"Not scored"}</span><br><small>${done} of ${sc.items.length} answered</small>`;
+    const line=lineFor(sc,st)||"Score items to build the line.";
+    $("aRep").textContent=line;};
+  const paint=scorer($("aList"),sc.items,st,upd,!!sc.rule);upd();
+  $("aReset").onclick=()=>{st.fill(null);paint();upd()};
+  $("aCopy").onclick=()=>copyText($("aRep"),$("aCopy"));
+  $("aSave").onclick=()=>saveRecent($("aRep").textContent,$("aSave"));
+}
+renderAdv();
+
+/* ---------- Burns ---------- */
+const AREAS=[["Head & neck",9],["Chest",9],["Abdomen",9],["Upper back",9],["Lower back & buttocks",9],["Left arm",9],["Right arm",9],["Left leg, front",9],["Left leg, back",9],["Right leg, front",9],["Right leg, back",9],["Perineum",1]];
+let bSel=store.get("burns",[]),palms=store.get("palms",0);
+$("bChips").innerHTML=AREAS.map((a,i)=>`<button class="chip" data-i="${i}" aria-pressed="false">${a[0]} · ${a[1]}%</button>`).join("");
+$("bChips").addEventListener("click",e=>{const b=e.target.closest(".chip");if(!b)return;const i=+b.dataset.i;
+  bSel=bSel.includes(i)?bSel.filter(x=>x!==i):[...bSel,i];renderBurns();});
+$("pPlus").onclick=()=>{palms++;renderBurns()};$("pMinus").onclick=()=>{palms=Math.max(0,palms-1);renderBurns()};
+$("bReset").onclick=()=>{bSel=[];palms=0;renderBurns()};
+function renderBurns(){
+  document.querySelectorAll("#bChips .chip").forEach(b=>b.setAttribute("aria-pressed",bSel.includes(+b.dataset.i)));
+  const t=Math.min(100,bSel.reduce((a,i)=>a+AREAS[i][1],0)+palms);
+  $("bTot").textContent=t+"%";$("pCount").textContent=palms;
+  store.set("burns",bSel);store.set("palms",palms);
+  if(!kg){$("park").innerHTML=`<dt>Needs</dt><dd>patient weight</dd>`;return}
+  const tot=4*kg*t;
+  $("park").innerHTML=`<dt>24 h total</dt><dd class="big">${fmt(tot,0)} mL</dd><dt>First 8 h</dt><dd>${fmt(tot/2,0)} mL</dd><dt>Rate, first 8 h</dt><dd>${fmt(tot/16,0)} mL/h</dd>`;
+}
+
+/* ---------- Tools ---------- */
+const num=id=>parseFloat($(id).value);
+$("tLb").addEventListener("input",()=>{const v=num("tLb");$("tKg").value=v>=0?fmt(v/LB,1):""});
+$("tKg").addEventListener("input",()=>{const v=num("tKg");$("tLb").value=v>=0?fmt(v*LB,1):""});
+$("tUse").onclick=()=>{const v=num("tKg");if(v>0){setKg(v);go("meds")}};
+$("tF").addEventListener("input",()=>{const v=num("tF");$("tC").value=isFinite(v)?fmt((v-32)*5/9,1):""});
+$("tC").addEventListener("input",()=>{const v=num("tC");$("tF").value=isFinite(v)?fmt(v*9/5+32,1):""});
+["hFt","hIn"].forEach(id=>$(id).addEventListener("input",()=>{const f=num("hFt")||0,i=num("hIn")||0,cm=(f*12+i)*2.54;$("hOut").innerHTML=cm>0?`${fmt(cm,0)} cm <small>${fmt(cm/100,2)} m</small>`:"—"}));
+function vitals(){const s=num("vS"),d=num("vD"),h=num("vH");let r="";
+  if(s>0&&d>0){const m=(s+2*d)/3;r+=`<dt>MAP</dt><dd class="big ${m<65?"sev-crit":""}">${fmt(m,0)} mmHg</dd>`}
+  if(s>0&&h>0){const si=h/s;r+=`<dt>Shock index</dt><dd class="big ${si>=1?"sev-crit":si>=.7?"sev-warn":"sev-ok"}">${fmt(si,2)}</dd><dt></dt><dd style="font-weight:500;font-size:13px">${si>=1?"≥ 1.0 concerning":si>=.7?"0.7–0.99 borderline":"< 0.7 normal"}</dd>`}
+  $("vOut").innerHTML=r;}
+["vS","vD","vH"].forEach(id=>$(id).addEventListener("input",vitals));
+function drip(){const v=num("dV"),t=num("dT"),f=+$("dF").value;
+  if(!(v>0&&t>0)){$("dOut").innerHTML="";return}
+  const g=v*f/t;$("dOut").innerHTML=`<dt>Drip rate</dt><dd class="big">${fmt(g,0)} gtt/min</dd><dt>Every 15 s</dt><dd>${fmt(g/4,1)} drops</dd><dt>Pump rate</dt><dd>${fmt(v/t*60,0)} mL/h</dd>`;}
+["dV","dT","dF"].forEach(id=>$(id).addEventListener("input",drip));
+let estKg=null;
+function age(){const a=num("aAge"),u=$("aUnit").value;estKg=null;
+  if(a>=0){const m=u==="m"?a:a*12,y=m/12;
+    if(m<12)estKg=.5*m+4;else if(y<=5)estKg=2*y+8;else if(y<=12)estKg=3*y+7;}
+  $("aOut").innerHTML=estKg?`${fmt(estKg,1)} kg <small>${fmt(estKg*LB,0)} lb</small>`:(a>12&&$("aUnit").value==="y"?"<small>Formula covers up to 12 y</small>":"—");}
+["aAge","aUnit"].forEach(id=>$(id).addEventListener("input",age));
+$("aUse").onclick=()=>{if(estKg){setKg(+estKg.toFixed(1));go("meds")}};
+
+/* ---------- Contraindication check (in memory only) ----------
+   DIR = in the ALS PCS v5.4 directive (contraindication or condition). NOTE = directive text that can't be checked from inputs. SUG = general clinical risk not in the directive. */
+const CLS={pde5:"PDE5 inhibitor",anticoag:"Anticoagulant",antiplt:"Antiplatelet",asa:"ASA (daily)",nsaid:"NSAID",apap:"Acetaminophen-containing",opioid:"Opioid",benzo:"Benzodiazepine",sedative:"Other sedating med",ssri:"Serotonergic (SSRI/SNRI etc.)",maoi:"MAOI",qt:"QT-prolonging",bb:"Beta blocker",ccb:"Calcium channel blocker",digoxin:"Digoxin",dipy:"Dipyridamole",carba:"Carbamazepine",theo:"Theophylline",insulin:"Insulin",su:"Sulfonylurea",lithium:"Lithium",acearb:"ACE inhibitor / ARB / diuretic",apomorphine:"Apomorphine",steroid:"Systemic steroid",riociguat:"Riociguat",methadone:"Methadone"};
+const DRUGS={};
+const addD=(c,list)=>list.split(",").forEach(n=>{n=n.trim();(DRUGS[n]=DRUGS[n]||[]).push(c)});
+addD("pde5","sildenafil,viagra,revatio,tadalafil,cialis,adcirca,vardenafil,levitra,staxyn,avanafil");addD("riociguat","riociguat,adempas");
+addD("anticoag","warfarin,coumadin,apixaban,eliquis,rivaroxaban,xarelto,dabigatran,pradaxa,edoxaban,lixiana,enoxaparin,lovenox,dalteparin,fragmin,tinzaparin,innohep,heparin");
+addD("antiplt","clopidogrel,plavix,ticagrelor,brilinta,prasugrel,effient");addD("asa","aspirin,asa,entrophen");
+addD("nsaid","ibuprofen,advil,motrin,naproxen,aleve,naprosyn,diclofenac,voltaren,arthrotec,celecoxib,celebrex,meloxicam,mobic,ketorolac,toradol,indomethacin");
+addD("apap","acetaminophen,tylenol,percocet,tylenol 3,tramacet");
+addD("opioid","morphine,statex,hydromorphone,dilaudid,oxycodone,oxyneo,percocet,codeine,tylenol 3,fentanyl,duragesic,methadone,metadol,buprenorphine,suboxone,tramadol,tramacet,tapentadol,nucynta");
+addD("benzo","lorazepam,ativan,clonazepam,rivotril,diazepam,valium,alprazolam,xanax,temazepam,restoril,oxazepam");
+addD("sedative","zopiclone,imovane,gabapentin,neurontin,pregabalin,lyrica,quetiapine,seroquel,olanzapine,zyprexa,cyclobenzaprine,flexeril");
+addD("ssri","sertraline,zoloft,citalopram,celexa,escitalopram,cipralex,fluoxetine,prozac,paroxetine,paxil,fluvoxamine,venlafaxine,effexor,duloxetine,cymbalta,desvenlafaxine,pristiq,trazodone,tramadol,tramacet,lithium,linezolid");
+addD("maoi","phenelzine,nardil,tranylcypromine,parnate,moclobemide,selegiline,rasagiline,azilect,linezolid");
+addD("qt","amiodarone,sotalol,methadone,metadol,citalopram,celexa,escitalopram,cipralex,haloperidol,quetiapine,seroquel,ziprasidone,domperidone,azithromycin,levofloxacin,ciprofloxacin");
+addD("bb","metoprolol,lopresor,bisoprolol,monocor,atenolol,tenormin,propranolol,inderal,carvedilol,nadolol,sotalol,labetalol");
+addD("ccb","diltiazem,cardizem,verapamil,isoptin,amlodipine,norvasc,nifedipine,adalat");
+addD("digoxin","digoxin,lanoxin,toloxin");addD("dipy","dipyridamole,aggrenox,persantine");addD("carba","carbamazepine,tegretol");addD("theo","theophylline,aminophylline");
+addD("insulin","insulin,lantus,humalog,novorapid,basaglar,tresiba,toujeo,levemir,humulin,novolin,fiasp");addD("su","gliclazide,diamicron,glyburide,glimepiride,amaryl");
+addD("lithium","lithium,carbolith,lithmax");addD("acearb","ramipril,altace,perindopril,coversyl,lisinopril,enalapril,candesartan,atacand,losartan,cozaar,valsartan,diovan,irbesartan,telmisartan,micardis,furosemide,lasix,hydrochlorothiazide,spironolactone");
+addD("apomorphine","apomorphine,kynmobi");addD("methadone","methadone,metadol");addD("steroid","prednisone,dexamethasone,methylprednisolone,medrol,hydrocortisone,cortef,prednisolone");
+/* Common Canadian home medications (generic + brand). Classes without rules are informational only. */
+Object.assign(CLS,{hydralazine:"Vasodilator",statin:"Statin",lipid:"Other lipid-lowering",nitrateHome:"Home nitrate",alpha:"Alpha blocker",antiarr:"Antiarrhythmic",biguanide:"Metformin",dpp4:"DPP-4 inhibitor",sglt2:"SGLT2 inhibitor",glp1:"GLP-1 agonist",thyroid:"Thyroid",ppi:"PPI / acid reducer",laxative:"Laxative / bowel",inhaler:"Inhaler",tca:"Tricyclic antidepressant",antipsych:"Antipsychotic",antiepi:"Antiepileptic",stimulant:"Stimulant (ADHD)",dementia:"Dementia med",parkinson:"Parkinson med",triptan:"Triptan",antibiotic:"Antibiotic",antiviral:"Antiviral",antifungal:"Antifungal",bladder:"Bladder (anticholinergic / beta-3)",gout:"Gout",bone:"Bone health",supplement:"Vitamin / supplement",hormone:"Hormone / contraceptive",antihist:"Antihistamine (non-sedating)",dph:"Diphenhydramine (home)",immuno:"Immunosuppressant / biologic",mtx:"Methotrexate",naltrexone:"Naltrexone",smoking:"Smoking cessation",potassium:"Potassium",ari5:"5-alpha reductase inhibitor",bupropion:"Bupropion",antiemetic:"Antiemetic (home)",muscle:"Muscle relaxant"});
+[["statin","atorvastatin,lipitor,rosuvastatin,crestor,simvastatin,zocor,pravastatin,pravachol,lovastatin,fluvastatin"],
+ ["lipid","ezetimibe,ezetrol,fenofibrate,lipidil,evolocumab,repatha,icosapent ethyl,vascepa"],
+ ["acearb","trandolapril,mavik,quinapril,accupril,olmesartan,olmetec,azilsartan,edarbi,sacubitril/valsartan,entresto,chlorthalidone,indapamide,lozide,eplerenone,inspra,metolazone,bumetanide"],
+ ["ccb","tiazac,adalat xl,felodipine,plendil"],
+ ["nitrateHome","isosorbide mononitrate,imdur,isosorbide dinitrate,nitro-dur,nitroglycerin patch,nitrolingual"],
+ ["alpha","tamsulosin,flomax,doxazosin,cardura,terazosin,alfuzosin,xatral,silodosin,rapaflo,prazosin"],
+ ["antiarr","flecainide,propafenone,rythmol,dronedarone,multaq"],["qt","dronedarone,multaq,hydroxychloroquine,plaquenil,clarithromycin,biaxin,moxifloxacin,fluconazole,diflucan,ondansetron,zofran,trazodone,amitriptyline,nortriptyline,risperidone,paliperidone,clozapine"],
+ ["hydralazine","hydralazine"],
+ ["biguanide","metformin,glucophage,glumetza,janumet,jentadueto,synjardy,xigduo"],
+ ["dpp4","sitagliptin,januvia,janumet,linagliptin,trajenta,jentadueto,saxagliptin,onglyza,alogliptin,nesina"],
+ ["sglt2","empagliflozin,jardiance,synjardy,dapagliflozin,forxiga,xigduo,canagliflozin,invokana"],
+ ["glp1","semaglutide,ozempic,rybelsus,wegovy,dulaglutide,trulicity,liraglutide,victoza,saxenda,tirzepatide,mounjaro"],
+ ["insulin","insulin glargine,insulin lispro,insulin aspart,insulin degludec,insulin detemir,admelog,trurapi,kirsty,semglee"],
+ ["su","diabeta"],
+ ["thyroid","levothyroxine,synthroid,eltroxin,euthyrox,liothyronine,cytomel,methimazole,tapazole,propylthiouracil"],
+ ["ppi","pantoprazole,pantoloc,tecta,omeprazole,losec,esomeprazole,nexium,rabeprazole,pariet,lansoprazole,prevacid,dexlansoprazole,dexilant,famotidine,pepcid,ranitidine"],
+ ["laxative","docusate,colace,sennosides,senokot,polyethylene glycol,peg 3350,lax-a-day,restoralax,lactulose,bisacodyl,dulcolax,psyllium,metamucil,mesalamine,pentasa,mezavant,salofalk"],
+ ["antiemetic","metoclopramide"],["qt","domperidone,motilium"],
+ ["inhaler","salbutamol,ventolin,airomir,terbutaline,bricanyl,fluticasone,flovent,budesonide,pulmicort,ciclesonide,alvesco,beclomethasone,qvar,advair,fluticasone/salmeterol,symbicort,budesonide/formoterol,breo,trelegy,zenhale,tiotropium,spiriva,umeclidinium,incruse,anoro,inspiolto,ipratropium,atrovent,montelukast,singulair"],
+ ["steroid","prednisone,methylprednisolone,medrol,prednisolone,dexamethasone,decadron,hydrocortisone,cortef,fludrocortisone,florinef,budesonide oral,entocort"],
+ ["ssri","vortioxetine,trintellix,mirtazapine,remeron,trazodone,desyrel,amitriptyline,nortriptyline,clomipramine,levomilnacipran"],
+ ["tca","amitriptyline,elavil,nortriptyline,aventyl,doxepin,silenor,clomipramine,anafranil,imipramine,desipramine,trimipramine"],
+ ["sedative","mirtazapine,remeron,amitriptyline,nortriptyline,doxepin,trazodone,desyrel,hydroxyzine,atarax,risperidone,aripiprazole,clozapine,paliperidone,lurasidone,baclofen,lioresal,methocarbamol,robaxin,tizanidine,zolpidem,sublinox,suvorexant,lemborexant,dayvigo,nabilone,cesamet,cannabis"],
+ ["antipsych","quetiapine,seroquel,olanzapine,zyprexa,risperidone,risperdal,aripiprazole,abilify,abilify maintena,paliperidone,invega,clozapine,clozaril,lurasidone,latuda,haloperidol,haldol,brexpiprazole,rexulti,lithium"],
+ ["bupropion","bupropion,wellbutrin,zyban,contrave"],
+ ["antiepi","levetiracetam,keppra,lamotrigine,lamictal,valproic acid,divalproex,epival,depakene,topiramate,topamax,phenytoin,dilantin,lacosamide,vimpat,oxcarbazepine,trileptal,brivaracetam,brivlera,clobazam,frisium,carbamazepine,tegretol,gabapentin,pregabalin"],
+ ["benzo","clobazam,frisium,bromazepam,lectopam,chlordiazepoxide,midazolam"],
+ ["stimulant","methylphenidate,concerta,ritalin,biphentin,foquest,lisdexamfetamine,vyvanse,amphetamine,adderall,dextroamphetamine,dexedrine,atomoxetine,strattera,guanfacine,intuniv"],
+ ["dementia","donepezil,aricept,galantamine,reminyl,rivastigmine,exelon,memantine,ebixa"],
+ ["parkinson","levodopa,carbidopa,sinemet,pramipexole,mirapex,ropinirole,requip,rasagiline,azilect,entacapone,amantadine"],
+ ["triptan","sumatriptan,imitrex,rizatriptan,maxalt,zolmitriptan,zomig,eletriptan,relpax,almotriptan,naratriptan"],["ssri","sumatriptan,rizatriptan,zolmitriptan,eletriptan,almotriptan,naratriptan"],
+ ["nsaid","naproxen sodium,anaprox,ketoprofen,etodolac,nabumetone,diclofenac gel,pennsaid"],
+ ["apap","tylenol arthritis,tylenol #3,acetaminophen/codeine"],
+ ["opioid","hydromorph contin,m-eslon,kadian,oxycocet,tylenol #3,acetaminophen/codeine,codeine contin,sublocade,butrans,belbuca,durela,tridural"],["ssri","durela,tridural,methadone"],
+ ["muscle","cyclobenzaprine,flexeril,methocarbamol,robaxin,baclofen,tizanidine,orphenadrine"],
+ ["antibiotic","amoxicillin,amoxil,amoxicillin-clavulanate,clavulin,cephalexin,keflex,cefuroxime,ceftin,cefadroxil,cefprozil,azithromycin,zithromax,clarithromycin,doxycycline,minocycline,nitrofurantoin,macrobid,sulfamethoxazole-trimethoprim,septra,trimethoprim,metronidazole,flagyl,clindamycin,dalacin,ciprofloxacin,cipro,levofloxacin,moxifloxacin,avelox,penicillin v,fosfomycin,monurol,linezolid,zyvoxam"],
+ ["antiviral","valacyclovir,valtrex,acyclovir,famciclovir,oseltamivir,tamiflu,paxlovid,nirmatrelvir"],
+ ["antifungal","fluconazole,diflucan,terbinafine,lamisil,nystatin"],
+ ["bladder","oxybutynin,ditropan,solifenacin,vesicare,tolterodine,detrol,darifenacin,fesoterodine,toviaz,trospium,mirabegron,myrbetriq,vibegron"],
+ ["ari5","finasteride,proscar,propecia,dutasteride,avodart,jalyn"],
+ ["gout","allopurinol,zyloprim,colchicine,febuxostat,uloric"],
+ ["bone","alendronate,fosamax,fosavance,risedronate,actonel,zoledronic acid,aclasta,denosumab,prolia,raloxifene,evista"],
+ ["supplement","vitamin d,calcium carbonate,vitamin b12,cyanocobalamin,folic acid,ferrous sulfate,ferrous gluconate,feramax,iron,magnesium,multivitamin,omega-3,melatonin"],
+ ["potassium","potassium chloride,k-dur,slow-k,micro-k"],
+ ["hormone","estradiol,estrace,estrogel,divigel,premarin,conjugated estrogens,progesterone,prometrium,medroxyprogesterone,provera,depo-provera,levonorgestrel,mirena,kyleena,alesse,ethinyl estradiol,yasmin,yaz,drospirenone,slynd,norethindrone,micronor,tri-cyclen,marvelon,nuvaring,testosterone,androgel,tamoxifen,letrozole,femara,anastrozole,arimidex,leuprolide,lupron"],
+ ["antihist","cetirizine,reactine,loratadine,claritin,desloratadine,aerius,fexofenadine,allegra,bilastine,blexten,rupatadine,rupall"],
+ ["dph","diphenhydramine,benadryl,nytol,sleep-eze,unisom,advil nighttime,tylenol nighttime"],["antihist","diphenhydramine,benadryl,dimenhydrinate,gravol"],
+ ["immuno","adalimumab,humira,etanercept,enbrel,infliximab,remicade,ustekinumab,stelara,secukinumab,cosentyx,dupilumab,dupixent,tacrolimus,advagraf,prograf,mycophenolate,cellcept,azathioprine,imuran,cyclosporine,neoral,tofacitinib,xeljanz,upadacitinib,rinvoq,leflunomide,arava,sulfasalazine,salazopyrin"],
+ ["mtx","methotrexate,metoject,otrexup"],
+ ["naltrexone","naltrexone,revia,contrave"],
+ ["smoking","varenicline,champix,nicotine patch,nicorette,habitrol"],
+ ["anticoag","eliquis,xarelto,pradaxa,lixiana,coumadin"],["pde5","sildenafil,tadalafil"],
+].forEach(([c,list])=>addD(c,list));
+Object.keys(DRUGS).forEach(k=>DRUGS[k]=[...new Set(DRUGS[k])]);
+const COND=[
+ ["aloc","Altered LOA","Patient"],["unresp","Unresponsive","Patient"],["vomit","Active vomiting","Patient"],["noPO","Can't chew, swallow or tolerate PO","Patient"],["preg","Pregnant","Patient"],["labour","Active labour","Patient"],["head","Head injury","Patient"],["isoHead","Isolated head injury","Patient"],
+ ["asthmaNoAsa","Asthmatic, no prior ASA/NSAID use","History"],["bleed","Current active bleeding","History"],["cvaTbi","CVA or TBI in last 24 h","History"],["pud","Hx peptic ulcer or GI bleed","History"],["renal","Known renal impairment","History"],["liver","Hx liver disease","History"],["qtSyn","Known prolonged QT syndrome","History"],["pheo","Pheochromocytoma","History"],["hearttx","Heart transplant","History"],["methadone72","Methadone in past 72 h","History"],
+ ["ischCP","Suspected ischemic chest pain","Presentation"],["headacheTx","Treating headache","Presentation"],["chronicTx","Treating chronic pain","Presentation"],["rvmi","12-lead compatible with RV MI","Presentation"],["stAfFl","Sinus tach, A-fib or A-flutter","Presentation"],["broncho","Bronchoconstriction on exam","Presentation"],["hypotherm","Hypothermia","Presentation"],["mech","Mechanical shock","Presentation"],["hypovol","Hypovolemia","Presentation"],["overload","Fluid overload","Presentation"],["tachyNS","Tachydysrhythmia (not sinus)","Presentation"],["antiOD","Overdose: antihistamine, anticholinergic or TCA","Presentation"],["dphGiven","Diphenhydramine given this call","Presentation"],["inj3h","> 3 h since injury, or unknown","Presentation"],
+ ["aNsaid","ASA / NSAIDs","Allergy or sensitivity"],["aNitrate","Nitrates","Allergy or sensitivity"],["aEpi","Epinephrine","Allergy or sensitivity"],["aSalb","Salbutamol","Allergy or sensitivity"],["aAntihist","Antihistamines","Allergy or sensitivity"],["aOnd","Ondansetron","Allergy or sensitivity"],["aApap","Acetaminophen","Allergy or sensitivity"],["aMorph","Morphine","Allergy or sensitivity"],["aFent","Fentanyl","Allergy or sensitivity"],["aKet","Ketamine","Allergy or sensitivity"],["aMid","Midazolam","Allergy or sensitivity"],["aLido","Lidocaine","Allergy or sensitivity"],["aAmio","Amiodarone","Allergy or sensitivity"],["aAden","Adenosine","Allergy or sensitivity"],["aAtro","Atropine","Allergy or sensitivity"],["aDopa","Dopamine","Allergy or sensitivity"],["aCa","Calcium gluconate","Allergy or sensitivity"],["aSteroid","Steroids","Allergy or sensitivity"],["aGluc","Glucagon","Allergy or sensitivity"],["aDex","Dextrose","Allergy or sensitivity"],["aNalox","Naloxone","Allergy or sensitivity"],["aBup","Buprenorphine","Allergy or sensitivity"],["aTxa","TXA","Allergy or sensitivity"],["aOxy","Oxytocin","Allergy or sensitivity"],["aHydro","Hydrocortisone","Allergy or sensitivity"],
+];
+const DIR="dir",SUG="sug",NOTE="note";
+const h=(x,k)=>x.cond.has(k);
+const al=(x,k,drug)=>h(x,k)&&[DIR,"Allergy or sensitivity to "+drug];
+// PCS conventions: adult normotension SBP ≥ 100, hypotension < 90; pediatric normotension ≥ 90 + 2×age, hypotension < 70 + 2×age.
+const peds=x=>x.age!=null&&x.age<18;
+const normo=x=>x.sbp==null?null:(peds(x)?x.sbp>=90+2*x.age:x.sbp>=100);
+const hypo=x=>x.sbp==null?null:(peds(x)?x.sbp<70+2*x.age:x.sbp<90);
+const nN=x=>normo(x)===false&&[DIR,"Condition: normotension (SBP "+(peds(x)?"≥ "+(90+2*x.age):"≥ 100")+")"];
+const nH=x=>hypo(x)===false&&[DIR,"Condition: hypotension (SBP "+(peds(x)?"< "+(70+2*x.age):"< 90")+")"];
+const ageC=(x,lo,txt)=>x.age!=null&&x.age<lo&&[DIR,"Condition: age "+txt];
+const loa=x=>(h(x,"aloc")||h(x,"unresp"))&&[DIR,"Condition: unaltered LOA"];
+const wt=min=>kg&&kg<min&&[DIR,"Condition: weight ≥ "+min+" kg (from weight above)"];
+const sed=c=>(c("benzo")||c("opioid")||c("sedative"))&&[SUG,"Home opioids, benzos or sedatives: additive sedation / respiratory depression"];
+/* Rules take (c, x, d): c(class) home-med check, x inputs, d the selected directive id. */
+const R={
+ "Salbutamol":(c,x,d)=>[al(x,"aSalb","salbutamol"),d==="hyperk"&&ageC(x,18,"≥ 18 years"),d==="broncho"&&[NOTE,"Nebulization contraindicated with known/suspected fever or a declared febrile respiratory outbreak"],c("bb")&&[SUG,"Beta blocker (esp. non-selective): reduced effect"]],
+ "Epinephrine":(c,x,d)=>[al(x,"aEpi","epinephrine"),
+   d==="croup"&&x.age!=null&&(x.age<.5||x.age>=8)&&[DIR,"Condition: age ≥ 6 months to < 8 years"],d==="croup"&&x.hr&&x.hr>=200&&[DIR,"Condition: HR < 200"],d==="croup"&&[NOTE,"Stridor at rest"],
+   d==="broncho"&&[NOTE,"Only if BVM ventilation required AND Hx of asthma"],d==="allergy"&&[NOTE,"For anaphylaxis only"],d==="arrest"&&[NOTE,"IM only if anaphylaxis suspected as cause"],
+   d!=="arrest"&&c("bb")&&[SUG,"Beta blocker: may blunt response"],d!=="arrest"&&c("maoi")&&[SUG,"MAOI: exaggerated pressor response"]],
+ "Dexamethasone":(c,x,d)=>[al(x,"aSteroid","steroids"),c("inhaler")&&!c("steroid")&&[NOTE,"Inhaled steroids aren't PO or parenteral steroids"],
+   d==="broncho"&&c("steroid")&&[DIR,"Currently on PO or parenteral steroids"],d==="broncho"&&[NOTE,"Hx of asthma OR COPD OR 20 pack-year smoking"],
+   d==="croup"&&c("steroid")&&[DIR,"Steroids received within the last 48 hours (confirm timing)"],d==="croup"&&h(x,"noPO")&&[DIR,"Unable to tolerate oral medications"],d==="croup"&&loa(x),d==="croup"&&x.age!=null&&(x.age<.5||x.age>=8)&&[DIR,"Condition: age ≥ 6 months to < 8 years"],
+   (c("insulin")||c("su"))&&[SUG,"Diabetic: expect raised glucose"]],
+ "Diphenhydramine":(c,x)=>[al(x,"aAntihist","diphenhydramine"),wt(25),sed(c),c("dph")&&[SUG,"Took diphenhydramine at home: ask dose and time"],c("tca")&&[SUG,"TCA: additive anticholinergic effects"],x.age>=65&&[SUG,"Age 65+: delirium and fall risk"]],
+ "ASA":(c,x)=>[al(x,"aNsaid","NSAIDs"),h(x,"asthmaNoAsa")&&[DIR,"If asthmatic, no prior use of ASA"],h(x,"bleed")&&[DIR,"Current active bleeding"],h(x,"cvaTbi")&&[DIR,"CVA or TBI in the previous 24 hours"],ageC(x,18,"≥ 18 years"),loa(x),h(x,"noPO")&&[DIR,"Condition: able to chew and swallow"],
+   c("asa")&&[SUG,"Already on daily ASA: ask if taken today"],(c("anticoag")||c("antiplt"))&&[SUG,"On anticoagulant/antiplatelet: higher bleeding risk"]],
+ "Nitroglycerin":(c,x,d)=>[al(x,"aNitrate","nitrates"),c("pde5")&&[DIR,"Phosphodiesterase inhibitor use within the previous 48 hours (confirm timing)"],d==="ischemia"&&h(x,"rvmi")&&[DIR,"12-lead ECG compatible with right ventricular MI"],
+   x.hr&&(x.hr<60||x.hr>159)&&[DIR,"Condition: HR 60–159"],nN(x),ageC(x,18,"≥ 18 years"),d==="ischemia"&&loa(x),
+   [NOTE,d==="ischemia"?"Prior nitro use OR IV access required; stop if SBP drops by one-third or more; max 3 doses if STEMI":"Stop if SBP drops by one-third or more; SBP ≥ 140 dose needs IV or prior nitro use"],
+   c("riociguat")&&[SUG,"Riociguat: severe hypotension risk, as with PDE5 inhibitors"]],
+ "Dextrose":(c,x)=>[al(x,"aDex","dextrose"),c("sglt2")&&[SUG,"SGLT2 inhibitor: hypoglycemia uncommon alone; think about euglycemic DKA if unwell"],scope==="pcp"&&ageC(x,2,"≥ 2 years (PCP)"),c("su")&&[SUG,"Sulfonylurea: hypoglycemia likely to recur"],c("insulin")&&[SUG,"Insulin: long-acting types can cause recurrence"]],
+ "Glucagon":(c,x)=>[al(x,"aGluc","glucagon"),h(x,"pheo")&&[DIR,"Pheochromocytoma"],x.age!=null&&x.age<4&&[NOTE,"IN powder needs age ≥ 4 years; IM has no age limit"],c("su")&&[SUG,"Sulfonylurea: hypoglycemia likely to recur"]],
+ "Naloxone":(c,x)=>[al(x,"aNalox","naloxone"),[NOTE,"Altered LOA, RR < 10, and unable to ventilate adequately or persistent need to assist"],c("opioid")&&[SUG,"Home opioids: titrate to breathing to limit acute withdrawal"]],
+ "Buprenorphine/naloxone":(c,x)=>[al(x,"aBup","buprenorphine"),(h(x,"methadone72")||c("methadone"))&&[DIR,"Taken methadone in the past 72 hours"+(h(x,"methadone72")?"":" (confirm timing)")],ageC(x,16,"≥ 16 years"),loa(x),[NOTE,"Must have received naloxone this episode and COWS ≥ 8"]],
+ "Hydrocortisone":(c,x)=>[al(x,"aHydro","hydrocortisone"),[NOTE,"Only with the patient's own vial presented"]],
+ "Acetaminophen":(c,x)=>[al(x,"aApap","acetaminophen"),c("apap")&&[DIR,"Acetaminophen use within previous 4 hours (confirm timing)"],h(x,"liver")&&[DIR,"Hx of liver disease"],h(x,"vomit")&&[DIR,"Active vomiting"],h(x,"noPO")&&[DIR,"Unable to tolerate oral medication"],h(x,"ischCP")&&[DIR,"Suspected ischemic chest pain"],ageC(x,12,"≥ 12 years"),loa(x)],
+ "Ibuprofen":(c,x)=>NSAID(c,x,true),
+ "Ketorolac":(c,x)=>NSAID(c,x,false),
+ "Fentanyl":(c,x,d)=>d==="sedation"?[al(x,"aFent","fentaNYL"),nN(x),ageC(x,18,"≥ 18 years"),[NOTE,"RR ≥ 10 if not intubated"],sed(c)]:[...OPI(c,x,"aFent","fentaNYL"),c("ssri")&&[SUG,"Serotonergic meds: serotonin syndrome (rare)"]],
+ "Morphine":(c,x,d)=>d==="ischemia"?[al(x,"aMorph","morphine"),nN(x),ageC(x,18,"≥ 18 years"),loa(x),[NOTE,"Severe pain; after 3rd nitro or if nitro contraindicated; stop if SBP drops by one-third"],sed(c)]:[...OPI(c,x,"aMorph","morphine"),nN(x),h(x,"renal")&&[SUG,"Renal impairment: metabolites accumulate"]],
+ "Ketamine":(c,x,d)=>d==="combative"?[al(x,"aKet","ketamine"),ageC(x,18,"≥ 18 years"),[NOTE,"Suspected excited delirium / severe violent psychosis; don't co-administer with midazolam unless BHP directs"],sed(c)]:
+   [al(x,"aKet","ketamine"),h(x,"headacheTx")&&[DIR,"Treatment of headache"],h(x,"chronicTx")&&[DIR,"Treatment of chronic pain"],h(x,"ischCP")&&[DIR,"Suspected ischemic chest pain"],h(x,"labour")&&[DIR,"Active labour"],ageC(x,1,"≥ 1 year"),loa(x),x.age!=null&&x.age<18&&[DIR,"Mandatory patch under 18 years"],[NOTE,"Give sequentially with morphine/fentanyl, never together"],sed(c)],
+ "Midazolam":(c,x,d)=>[al(x,"aMid","midazolam"),d==="seizure"&&[NOTE,"Active generalized motor seizure, unresponsive"],d==="combative"&&ageC(x,18,"≥ 18 years"),d==="combative"&&[NOTE,"Treat reversible causes first; may use 0.05 mg/kg by judgement"],d==="sedation"&&nN(x),d==="sedation"&&ageC(x,18,"≥ 18 years"),d==="sedation"&&[NOTE,"RR ≥ 10 if not intubated"],d!=="seizure"&&sed(c),d!=="seizure"&&x.age>=65&&[SUG,"Age 65+: consider lower dose"]],
+ "Ondansetron":(c,x)=>[al(x,"aOnd","ondansetron"),h(x,"qtSyn")&&[DIR,"Prolonged QT syndrome (known to patient)"],c("apomorphine")&&[DIR,"Apomorphine use"],wt(25),loa(x),c("qt")&&[SUG,"QT-prolonging home meds"],c("ssri")&&[SUG,"Serotonergic meds: serotonin syndrome (rare)"]],
+ "Dimenhydrinate":(c,x)=>[al(x,"aAntihist","dimenhydrinate or other antihistamines"),h(x,"antiOD")&&[DIR,"Overdose on antihistamines or anticholinergics or TCAs"],h(x,"dphGiven")&&[DIR,"Co-administration of diphenhydramine"],c("dph")&&[SUG,"Took diphenhydramine at home: similar to co-administration; ask dose and time"],c("tca")&&[SUG,"TCA: additive anticholinergic effects"],wt(25),loa(x),x.age>=65&&[NOTE,"≥ 65 y: if ondansetron unavailable, assess risk/benefit; may start at 25 mg"],sed(c)],
+ "Oxytocin":(c,x)=>[al(x,"aOxy","oxytocin"),x.sbp&&x.sbp>=160&&[DIR,"Condition: SBP < 160"],[NOTE,"Postpartum delivery"]],
+ "0.9% NaCl bolus":(c,x,d)=>[h(x,"overload")&&[DIR,"Fluid overload"],d==="cshock"&&x.sbp&&x.sbp>=90&&[DIR,"SBP ≥ 90"],d==="cshock"&&ageC(x,18,"≥ 18 years"),(d==="rosc"||d==="ivfluid")&&nH(x),scope==="pcp"&&ageC(x,2,"≥ 2 years (PCP)"),d!=="arrest"&&[NOTE,"Chest auscultation clear"],h(x,"renal")&&[SUG,"Renal impairment / dialysis: reassess chest often"]],
+ "Tranexamic acid (AUX)":(c,x)=>[al(x,"aTxa","TXA"),h(x,"inj3h")&&[DIR,"Greater than 3 hours from injury, or unknown time of injury"],h(x,"isoHead")&&[DIR,"Isolated head injury"],ageC(x,16,"≥ 16 years"),x.hr&&x.hr<110&&hypo(x)===false&&[DIR,"Condition: HR ≥ 110 or hypotension"],c("anticoag")&&[SUG,"On anticoagulant: note agent and last dose for receiving team"]],
+ "Amiodarone":(c,x,d)=>d==="tachy"?[al(x,"aAmio","amiodarone"),ageC(x,18,"≥ 18 years"),loa(x),nN(x),x.hr&&x.hr<120&&[DIR,"Condition: HR ≥ 120"],[NOTE,"Wide complex, regular; mandatory patch; infuse over 10 min"],c("qt")&&[SUG,"Other QT-prolonging meds"],c("digoxin")&&[SUG,"Digoxin: levels rise"],(c("bb")||c("ccb"))&&[SUG,"Beta blocker / CCB: bradycardia and hypotension"]]
+   :[al(x,"aAmio","amiodarone"),[NOTE,"VF or pulseless VT; use amiodarone OR lidocaine"]],
+ "Lidocaine":(c,x,d)=>d==="tachy"?[al(x,"aLido","lidocaine"),ageC(x,18,"≥ 18 years"),loa(x),nN(x),x.hr&&x.hr<120&&[DIR,"Condition: HR ≥ 120"],[NOTE,"Wide complex, regular; mandatory patch"]]
+   :d==="intub"?[al(x,"aLido","lidocaine"),h(x,"unresp")&&[DIR,"Unresponsive patient"],[NOTE,"Spray when GCS ≥ 4; max 5 mg/kg"]]
+   :[al(x,"aLido","lidocaine"),[NOTE,"VF or pulseless VT; use amiodarone OR lidocaine"]],
+ "Adenosine":(c,x)=>[al(x,"aAden","adenosine"),h(x,"stAfFl")&&[DIR,"Sinus tachycardia or atrial fibrillation or atrial flutter"],(c("dipy")||c("carba"))&&[DIR,"Patient taking dipyridamole or carbamazepine"],h(x,"broncho")&&[DIR,"Bronchoconstriction on exam"],
+   ageC(x,18,"≥ 18 years"),loa(x),nN(x),x.hr&&x.hr<150&&[DIR,"Condition: HR ≥ 150"],[NOTE,"Narrow complex, regular; patch if monomorphic wide complex"],c("theo")&&[SUG,"Theophylline: adenosine less effective"],h(x,"hearttx")&&[SUG,"Heart transplant: exaggerated, prolonged effect"]],
+ "Atropine":(c,x)=>[al(x,"aAtro","atropine"),h(x,"hypotherm")&&[DIR,"Hypothermia"],h(x,"hearttx")&&[DIR,"History of heart transplant"],ageC(x,18,"≥ 18 years"),x.hr&&x.hr>=50&&[DIR,"Condition: HR < 50"],nH(x)],
+ "Dopamine":(c,x,d)=>[al(x,"aDopa","dopamine"),h(x,"mech")&&[DIR,"Mechanical shock"],h(x,"pheo")&&[DIR,"Pheochromocytoma"],
+   (d==="rosc"||d==="cshock")&&h(x,"tachyNS")&&[DIR,"Tachydysrhythmias excluding sinus tachycardia"],d==="cshock"&&h(x,"hypovol")&&[DIR,"Hypovolemia"],d==="cshock"&&x.sbp&&x.sbp>=90&&[DIR,"SBP ≥ 90"],
+   d==="rosc"?ageC(x,8,"≥ 8 years"):ageC(x,18,"≥ 18 years"),d==="brady"&&x.hr&&x.hr>=50&&[DIR,"Condition: HR < 50"],nH(x),[NOTE,"Titrate to SBP 90–109; wean over 5–10 min"],c("maoi")&&[SUG,"MAOI: markedly exaggerated response"]],
+ "Calcium gluconate":(c,x)=>[al(x,"aCa","calcium gluconate"),ageC(x,18,"≥ 18 years"),[NOTE,"Dialysis/ESRD/crush AND arrest or pre-arrest with hyperkalemic 12-lead"],c("digoxin")&&[SUG,"Digoxin: calcium may worsen toxicity"]],
+};
+function NSAID(c,x,po){return[c("nsaid")&&[DIR,"NSAID use within previous 6 hours (confirm timing)"],al(x,"aNsaid","ASA or NSAIDs"),c("anticoag")&&[DIR,"Patient on anticoagulation therapy"],h(x,"bleed")&&[DIR,"Current active bleeding"],h(x,"pud")&&[DIR,"Hx of peptic ulcer disease or GI bleed"],
+  h(x,"preg")&&[DIR,"Pregnant"],h(x,"asthmaNoAsa")&&[DIR,"If asthmatic, no prior use of ASA or other NSAIDs"],h(x,"cvaTbi")&&[DIR,"CVA or TBI in the previous 24 hours"],h(x,"renal")&&[DIR,"Known renal impairment"],
+  po&&h(x,"vomit")&&[DIR,"Active vomiting"],po&&h(x,"noPO")&&[DIR,"Unable to tolerate oral medication"],h(x,"ischCP")&&[DIR,"Suspected ischemic chest pain"],ageC(x,12,"≥ 12 years"),loa(x),
+  c("antiplt")&&[SUG,"Antiplatelet: bleeding risk"],c("mtx")&&[SUG,"Methotrexate: NSAIDs raise methotrexate toxicity"],c("lithium")&&[SUG,"Lithium: NSAIDs raise lithium levels"],c("acearb")&&[SUG,"ACE/ARB/diuretic: kidney injury risk"],x.age>=65&&[SUG,"Age 65+: GI bleed and kidney risk"],h(x,"head")&&!h(x,"cvaTbi")&&[SUG,"Head injury: bleeding risk"]]}
+function OPI(c,x,ak,name){return[al(x,ak,name),h(x,"headacheTx")&&[DIR,"Treatment of headache"],h(x,"chronicTx")&&[DIR,"Treatment of chronic pain"],h(x,"ischCP")&&[DIR,"Suspected ischemic chest pain"+(name==="morphine"?" (use Cardiac Ischemia directive)":"")],h(x,"labour")&&[DIR,"Active labour"],
+  ageC(x,1,"≥ 1 year"),loa(x),x.age!=null&&x.age<12&&[DIR,"Mandatory patch under 12 years"],[NOTE,"Stop if SBP drops by one-third or more after a dose"],sed(c),c("naltrexone")&&[SUG,"Naltrexone: opioid analgesia likely ineffective; consider non-opioid options"],c("maoi")&&[SUG,"MAOI: serotonin syndrome / instability"],x.age>=65&&[SUG,"Age 65+: consider lower dose"]]}
+const DIRS=[
+ {id:"broncho",n:"Bronchoconstriction",s:"pcp",d:["Salbutamol","Epinephrine","Dexamethasone"]},
+ {id:"allergy",n:"Allergic reaction",s:"pcp",d:["Epinephrine","Diphenhydramine"]},
+ {id:"croup",n:"Croup",s:"pcp",d:["Epinephrine","Dexamethasone"]},
+ {id:"ischemia",n:"Cardiac ischemia",s:"pcp",d:["ASA","Nitroglycerin"],acp:["Morphine"]},
+ {id:"cpe",n:"Pulmonary edema",s:"pcp",d:["Nitroglycerin"]},
+ {id:"hypogly",n:"Hypoglycemia",s:"pcp",d:["Dextrose","Glucagon"]},
+ {id:"opioid",n:"Opioid toxicity / withdrawal",s:"pcp",d:["Naloxone","Buprenorphine/naloxone"]},
+ {id:"adrenal",n:"Adrenal crisis",s:"pcp",d:["Hydrocortisone"]},
+ {id:"analgesia",n:"Analgesia",s:"pcp",d:["Acetaminophen","Ibuprofen","Ketorolac"],acp:["Fentanyl","Morphine","Ketamine"]},
+ {id:"nausea",n:"Nausea / vomiting",s:"pcp",d:["Ondansetron","Dimenhydrinate"]},
+ {id:"childbirth",n:"Childbirth",s:"pcp",d:["Oxytocin"]},
+ {id:"rosc",n:"ROSC",s:"pcp",d:["0.9% NaCl bolus"],acp:["Dopamine"]},
+ {id:"ivfluid",n:"IV / fluid therapy",s:"pcp",d:["0.9% NaCl bolus"]},
+ {id:"hemorrhage",n:"Traumatic hemorrhage (AUX)",s:"pcp",d:["Tranexamic acid (AUX)"]},
+ {id:"arrest",n:"Medical cardiac arrest",s:"acp",d:["Epinephrine","Amiodarone","Lidocaine","0.9% NaCl bolus"]},
+ {id:"tachy",n:"Tachydysrhythmia",s:"acp",d:["Adenosine","Amiodarone","Lidocaine"]},
+ {id:"brady",n:"Symptomatic bradycardia",s:"acp",d:["Atropine","Dopamine"]},
+ {id:"cshock",n:"Cardiogenic shock",s:"acp",d:["0.9% NaCl bolus","Dopamine"]},
+ {id:"hyperk",n:"Hyperkalemia",s:"acp",d:["Calcium gluconate","Salbutamol"]},
+ {id:"seizure",n:"Seizure",s:"acp",d:["Midazolam"]},
+ {id:"combative",n:"Combative patient",s:"acp",d:["Midazolam","Ketamine"]},
+ {id:"sedation",n:"Procedural sedation (AUX)",s:"acp",d:["Fentanyl","Midazolam"]},
+ {id:"intub",n:"Intubation (lidocaine spray)",s:"acp",d:["Lidocaine"]},
+];
+const drugsFor=D=>scope==="acp"?[...D.d,...(D.acp||[])]:D.d;
+// Work out which inputs a directive's rules actually read, by running them once with everything "off" and once "on".
+function usedInputs(D){const u={cond:new Set(),cls:new Set(),v:new Set()};
+  for(const on of[false,true]){
+    const x={cond:{has:k=>(u.cond.add(k),on)}};
+    for(const v of["sbp","hr","age"])Object.defineProperty(x,v,{get:()=>(u.v.add(v),on?(v==="age"?70:120):null)});
+    const c=k=>(u.cls.add(k),on);x.c=c;
+    drugsFor(D).forEach(n=>{try{R[n](c,x,D.id)}catch(e){}});
+  }return u}
+let ckDir=null;const ck={cls:new Map(),cond:new Set()};let picked=new Set();
+function addCls(c,name){if(!ck.cls.has(c))ck.cls.set(c,new Set());ck.cls.get(c).add(name)}
+function rebuild(){ck.cls.clear();picked.forEach(n=>{if(n.startsWith("["))addCls(Object.keys(CLS).find(k=>"["+CLS[k]+"]"===n),n);else (DRUGS[n]||[]).forEach(c=>addCls(c,n))});check()}
+function renderDirs(){
+  const list=DIRS.filter(D=>scope==="acp"||D.s==="pcp");
+  if(ckDir&&!list.find(D=>D.id===ckDir))ckDir=null;
+  $("kDirs").innerHTML=list.map(D=>`<button class="chip" data-d="${D.id}" aria-pressed="${D.id===ckDir}">${D.n}</button>`).join("");
+  const D=DIRS.find(D=>D.id===ckDir);$("kInputs").hidden=!D;$("ckOut").hidden=!D;$("ckBar").hidden=!D;
+  if(!D){$("kPickHint").hidden=false;return}
+  $("kPickHint").hidden=true;
+  const u=usedInputs(D);
+  $("kDrugs").textContent="Checks: "+drugsFor(D).join(", ");
+  $("kVitals").hidden=!u.v.size;[["sbp","kS"],["hr","kH"],["age","kA"]].forEach(([v,id])=>$(id).closest(".field").hidden=!u.v.has(v));
+  const groups={};COND.filter(([k])=>u.cond.has(k)).forEach(([k,l,g])=>(groups[g]=groups[g]||[]).push([k,l]));
+  $("kCondCard").hidden=!Object.keys(groups).length;
+  $("kCond").innerHTML=Object.entries(groups).map(([g,list])=>`<p class="note" style="width:100%;margin-top:4px"><b>${g}</b></p>`+list.map(([k,l])=>`<button class="chip" data-k="${k}" aria-pressed="${ck.cond.has(k)}">${l}</button>`).join("")).join("");
+  const cls=Object.keys(CLS).filter(k=>u.cls.has(k));
+
+  $("kCls").innerHTML=cls.map(k=>`<button class="chip" data-c="${k}" aria-pressed="${picked.has("["+CLS[k]+"]")}">${CLS[k]}</button>`).join("");
+  $("kMedHint").textContent=cls.length?"Relevant here: "+cls.map(k=>CLS[k]).join(", ")+". Search any other med to confirm it has no flags.":"No home medication affects the drugs in this directive. You can still search to confirm.";
+  check();
+}
+$("kDirs").onclick=e=>{const b=e.target.closest("[data-d]");if(!b)return;ckDir=ckDir===b.dataset.d?null:b.dataset.d;renderDirs()};
+$("kCond").onclick=e=>{const b=e.target.closest("[data-k]");if(!b)return;ck.cond.has(b.dataset.k)?ck.cond.delete(b.dataset.k):ck.cond.add(b.dataset.k);b.setAttribute("aria-pressed",ck.cond.has(b.dataset.k));check()};
+$("kCls").onclick=e=>{const b=e.target.closest("[data-c]");if(!b)return;const lab="["+CLS[b.dataset.c]+"]";picked.has(lab)?picked.delete(lab):picked.add(lab);b.setAttribute("aria-pressed",picked.has(lab));rebuild()};
+$("kQ").addEventListener("input",()=>{const q=$("kQ").value.trim().toLowerCase();
+  $("kRes").innerHTML=q.length<2?"":Object.keys(DRUGS).filter(n=>n.includes(q)).slice(0,8).map(n=>`<button class="chip" data-n="${n}">+ ${n}</button>`).join("")||`<span class="empty">Not in this app's list. No ALS PCS directive names it as a contraindication, but check interactions yourself.</span>`});
+$("kRes").onclick=e=>{const b=e.target.closest("[data-n]");if(!b)return;picked.add(b.dataset.n);$("kQ").value="";$("kRes").innerHTML="";rebuild()};
+$("kSel").onclick=e=>{const b=e.target.closest("[data-n]");if(!b)return;picked.delete(b.dataset.n);rebuild();renderDirs()};
+["kS","kH","kA"].forEach(id=>$(id).addEventListener("input",check));
+$("kClear").onclick=()=>{picked.clear();ck.cond.clear();["kS","kH","kA","kQ"].forEach(i=>$(i).value="");$("kRes").innerHTML="";rebuild();renderDirs()};
+function check(){
+  const D=DIRS.find(D=>D.id===ckDir);if(!D)return;
+  $("kSel").innerHTML=[...picked].map(n=>`<button class="chip sel" data-n="${n}" aria-label="Remove ${n}" aria-pressed="true">${n}${n.startsWith("[")?"":` <small>· ${(DRUGS[n]||[]).map(c=>CLS[c]).join(", ")}</small>`} ✕</button>`).join("");
+  const sb=num("kS"),hr=num("kH"),ag=num("kA");
+  const x={cond:ck.cond,sbp:sb>0?sb:null,hr:hr>0?hr:null,age:isFinite(ag)?ag:null};const c=k=>ck.cls.has(k);x.c=c;
+  const res=drugsFor(D).map(n=>({n,f:R[n](c,x,D.id).filter(Boolean)}));
+  const isDir=r=>r.f.some(f=>f[0]===DIR),hasSug=r=>r.f.some(f=>f[0]===SUG);
+  const nD=res.filter(isDir).length,nS=res.filter(r=>!isDir(r)&&hasSug(r)).length;
+  const anticoagHead=(c("anticoag")||c("antiplt"))&&(h(x,"head")||h(x,"cvaTbi")||h(x,"isoHead"));
+  $("ckSum").innerHTML=`<b>${D.n}</b> · <b class="sev-crit">${nD} directive</b> · <b class="sev-warn">${nS} suggested</b>`;
+  const used=usedInputs(D).cls,meds=[...picked].map(n=>{const cl=n.startsWith("[")?[Object.keys(CLS).find(k=>"["+CLS[k]+"]"===n)]:(DRUGS[n]||[]);return[n,cl.some(k=>used.has(k))]});
+  const quiet=meds.filter(m=>!m[1]).map(m=>m[0]);
+  $("ckOut").innerHTML=(anticoagHead?`<div class="flag ca"><h3>Alert<span class="sev-warn">Suggested</span></h3><ul><li><b>Head injury on anticoagulant/antiplatelet: high bleed risk (FTTG Step 4 special criteria). Note agent and last dose.</b></li></ul></div>`:"")+
+   res.map(r=>{const d=isDir(r),s=hasSug(r),dirs=r.f.filter(f=>f[0]===DIR),sugs=r.f.filter(f=>f[0]===SUG),notes=r.f.filter(f=>f[0]===NOTE);
+    const tag=d?`<span class="sev-crit">Directive</span>`:s?`<span class="sev-warn">Suggested</span>`:`<span class="sev-ok">No flags</span>`;
+    return`<div class="flag ${d?"ci":s?"ca":"okc"}"><h3>${r.n}${tag}</h3>
+     ${dirs.length?`<ul>${dirs.map(f=>`<li><b>${f[1]}</b></li>`).join("")}</ul>`:""}
+     ${sugs.length?`<p class="note" style="margin:4px 0 0"><b class="sev-warn">Suggested</b> (not in directive)</p><ul>${sugs.map(f=>`<li>${f[1]}</li>`).join("")}</ul>`:""}
+     ${notes.length?`<p class="note" style="margin:2px 0 0">Also in directive: ${notes.map(f=>f[1]).join("; ")}</p>`:""}
+     ${!d&&!s?`<p class="note" style="margin:0">Nothing from what you've entered.</p>`:""}</div>`}).join("")+
+   (quiet.length?`<div class="card"><h3>Home meds with no flags here</h3><p class="note" style="margin:0">${quiet.join(" · ")}: not relevant to any drug in ${D.n}.</p></div>`:"");
+}
+
+/* ---------- tabs ---------- */
+function go(v){document.querySelectorAll("section.view").forEach(s=>s.hidden=s.id!=="v-"+v);
+  document.querySelectorAll("nav.tabs button").forEach(b=>b.setAttribute("aria-selected",b.dataset.v===v));
+  store.set("tab",v);window.scrollTo(0,0);}
+document.querySelector("nav.tabs").addEventListener("click",e=>{const b=e.target.closest("button");if(b)go(b.dataset.v)});
+function hdr(){document.documentElement.style.setProperty("--hdr",$("hdr").offsetHeight+8+"px")}
+addEventListener("resize",hdr);
+showWeight();setBasis(perKg);setScope(scope);renderDirs();renderBurns();hdr();go(["meds","dose","nihss","adv","check","tools"].includes(store.get("tab"))?store.get("tab"):"meds");
+</script>
+<script>
+if("serviceWorker" in navigator){addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));}
+</script>
+</body>
+</html>
