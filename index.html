@@ -25,7 +25,7 @@ a{color:var(--accent)}
 :root{
   --bg:#e9edf1; --surface:#ffffff; --surface-2:#f3f5f8; --ink:#14202b; --muted:#566573; --line:#d3dae1;
   --accent:#a14b00; --accent-ink:#ffffff; --accent-soft:#fbe7d3;
-  --ok:#2e7d32; --warn:#b26a00; --crit:#c62828;
+  --ok:#2e7d32; --warn:#b26a00; --crit:#c62828; --cond:#3f51b5;
   --display:"Barlow Semi Condensed","Arial Narrow",system-ui,sans-serif;
   --body:"Barlow",system-ui,-apple-system,sans-serif;
   --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
@@ -33,11 +33,11 @@ a{color:var(--accent)}
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
   --bg:#0d1319; --surface:#162029; --surface-2:#1d2933; --ink:#e7edf2; --muted:#93a3b1; --line:#2a3845;
   --accent:#f2a33a; --accent-ink:#1a1206; --accent-soft:#3a2a14;
-  --ok:#66bb6a; --warn:#f2b84b; --crit:#ef5350; color-scheme:dark}}
+  --ok:#66bb6a; --warn:#f2b84b; --crit:#ef5350; --cond:#8c9eff; color-scheme:dark}}
 :root[data-theme="dark"]{
   --bg:#0d1319; --surface:#162029; --surface-2:#1d2933; --ink:#e7edf2; --muted:#93a3b1; --line:#2a3845;
   --accent:#f2a33a; --accent-ink:#1a1206; --accent-soft:#3a2a14;
-  --ok:#66bb6a; --warn:#f2b84b; --crit:#ef5350; color-scheme:dark}
+  --ok:#66bb6a; --warn:#f2b84b; --crit:#ef5350; --cond:#8c9eff; color-scheme:dark}
 *{box-sizing:border-box}
 html,body{background:var(--bg)}
 body{color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.4;-webkit-text-size-adjust:100%}
@@ -109,11 +109,24 @@ input[type=search]{font:500 16px var(--body);padding:9px 10px;border:1px solid v
 .how{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
 .how summary{font:600 15px var(--display);cursor:pointer}
 .how ul{margin:8px 0 0;padding-left:18px;font-size:14px;display:flex;flex-direction:column;gap:4px}
+.ov{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 12px;margin:0}
+.ov dt{font-size:14px;color:var(--muted)}
+.ov dd{margin:0;font:600 16px var(--mono);color:var(--accent);text-align:right;font-variant-numeric:tabular-nums}
+.more summary{font:600 14px var(--body);color:var(--muted);cursor:pointer;padding-top:4px}
+.more dl{margin-top:8px}
+.rows dd{font-size:15px}
+.pill{display:inline-block;font:700 11px var(--mono);letter-spacing:.06em;padding:2px 6px;border-radius:5px;margin-right:8px;vertical-align:1px;min-width:46px;text-align:center}
+.p-cntr{background:var(--crit);color:var(--bg)}.p-cond{background:var(--cond);color:var(--bg)}.p-sugg{background:var(--warn);color:var(--bg)}.p-patch{border:1px solid var(--muted);color:var(--muted)}.p-info{border:1px solid var(--line);color:var(--muted)}
+.flag ul.items{list-style:none;padding:0;margin:4px 0 0;display:flex;flex-direction:column;gap:6px}
+.flag ul.items li{font-size:14px;line-height:1.35}
+.flag .sub{font:600 12px var(--body);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:6px 0 0}
+.flag.cond{border-left:5px solid var(--cond)}
+.legend{display:flex;flex-wrap:wrap;gap:8px 14px;font-size:13px;color:var(--muted)}
 .btn{font:600 15px var(--body);padding:9px 14px;border-radius:8px;border:1px solid var(--accent);background:transparent;color:var(--accent)}
 nav.tabs{position:fixed;left:0;right:0;bottom:0;z-index:6;background:var(--surface);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px);padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px);display:grid;grid-template-columns:repeat(6,1fr)}
 nav.tabs button{font:600 12px var(--body);letter-spacing:.03em;text-transform:uppercase;padding:14px 2px 12px;border:0;background:transparent;color:var(--muted);border-top:3px solid transparent}
 nav.tabs button[aria-selected=true]{color:var(--accent);border-top-color:var(--accent)}
-.sev-ok{color:var(--ok)}.sev-warn{color:var(--warn)}.sev-crit{color:var(--crit)}
+.sev-ok{color:var(--ok)}.sev-cond{color:var(--cond)}.sev-warn{color:var(--warn)}.sev-crit{color:var(--crit)}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 
@@ -314,7 +327,8 @@ nav.tabs button[aria-selected=true]{color:var(--accent);border-top-color:var(--a
 <!-- CHECKS -->
 <section class="view" id="v-check" hidden>
   <h2>Contraindication check</h2>
-  <p class="note">Pick the directive you're working under. Only the drugs, inputs and home meds that matter for it are shown. Nothing here is saved. <b class="sev-crit">Directive</b> = in the ALS PCS 5.4 tables. <b class="sev-warn">Suggested</b> = general clinical risk, not in the directive.</p>
+  <p class="note">Pick the directive you're working under. Only its drugs, inputs and relevant home meds are shown. Nothing here is saved.</p>
+  <div class="legend"><span><span class="pill p-cntr">CNTR</span>Contraindication in the directive</span><span><span class="pill p-cond">COND</span>Directive condition that must be met</span><span><span class="pill p-patch">PATCH</span>Mandatory BHP patch</span><span><span class="pill p-sugg">SUGG</span>Suggested risk, not in the directive</span><span><span class="pill p-info">INFO</span>Directive note</span></div>
   <div class="card"><h3>Directive</h3><div class="chips" id="kDirs"></div><p class="note" id="kPickHint">Directives follow the PCP/ACP switch on the Meds tab.</p></div>
   <a class="total" href="#ckOut" id="ckBar" style="text-decoration:none" hidden><div class="lbl" id="ckSum" style="flex:1"></div><span class="lbl">View ↓</span></a>
   <div id="kInputs" style="display:flex;flex-direction:column;gap:14px" hidden>
@@ -417,7 +431,7 @@ const ACP=[
  {n:"Dextrose < 2 y",d:"Hypoglycemia",r:"IV · D10W",w:1,f:w=>{const g=cap(.2*w,5);return[["D10W",fmt(g,1)+" g = "+fmt(g*10,0)+" mL",1],["Rule","0.2 g/kg, max 5 g (50 mL)"],["Repeat","q10 min, max 2"]]}},
  {n:"Midazolam",d:"Seizure · Combative · Procedural sedation (AUX)",r:"IV / IO / IM / IN / buccal",w:1,f:w=>[["Seizure IV/IO",fmt(cap(.1*w,5),1)+" mg",1],["Seizure IM/IN/buccal",fmt(cap(.2*w,10),1)+" mg"],["Seizure repeat","q5 min, max 2"],["Combative (≥ 18 y)","up to "+fmt(cap(.1*w,5),1)+" mg q5 min, total 10 mg"],["Sedation (AUX)","up to "+fmt(cap(.1*w,5),1)+" mg q5 min, total 10 mg"],["Volume",VOLNOTE]]},
  {n:"Fentanyl",d:"Analgesia · Procedural sedation (AUX)",r:"IV / IN",w:1,f:w=>[["≥ 18 y","25–75 mcg q5 min",1],["1–17 y","up to "+fmt(cap(w,75),0)+" mcg (1 mcg/kg) q5 min"],["Max","75 mcg single, 200 mcg total"],["Sedation (AUX)","25–75 mcg, total 150 mcg"],["Patch","< 12 y"]]},
- {n:"Morphine",d:"Analgesia · Cardiac ischemia",r:"IV / SC",w:1,f:w=>[["≥ 18 y","2–10 mg q15 min, max 20 mg",1],["1–17 y",fmt(cap(.05*w,5),1)+"–"+fmt(cap(.1*w,5),1)+" mg q15 min"],["Peds max","5 mg single, 10 mg total; patch < 12 y"],["Cardiac ischemia","2 mg IV q5 min, max 5"]]},
+ {n:"Morphine",d:"Analgesia · Cardiac ischemia",r:"IV / SC",w:1,f:w=>[["≥ 18 y","2–10 mg q15 min, max 20 mg",1],["1–17 y",rng(cap(.05*w,5),cap(.1*w,5),"mg")+" q15 min"],["Peds max","5 mg single, 10 mg total; patch < 12 y"],["Cardiac ischemia","2 mg IV q5 min, max 5"]]},
  {n:"Ketamine",d:"Analgesia · Combative",r:"IV / IN / IM",w:1,f:w=>[["≥ 18 y IV",fmt(cap(.25*w,20),1)+" mg",1],["≥ 18 y IN",fmt(cap(w,75),0)+" mg"],["1–17 y (patch)","IV "+fmt(cap(.25*w,10),1)+" mg / IN "+fmt(cap(w,30),0)+" mg"],["Repeat","q15 min, max 2"],["Combative IM","18–64 y "+fmt(cap(5*w,500),0)+" mg; ≥ 65 y "+fmt(cap(3*w,300),0)+" mg"]]},
  {n:"Hydrocortisone",d:"Suspected adrenal crisis",r:"IM / IV / IO / CVAD",w:1,f:w=>[["Dose",fmt(r10(cap(2*w,100)),0)+" mg",1],["Rule","2 mg/kg, max 100 mg, round to 10 mg"]]},
  {n:"Lidocaine spray",d:"Orotracheal intubation",r:"Topical · 10 mg/spray",w:1,f:w=>[["Max",fmt(Math.min(5*w,200),0)+" mg ("+Math.min(Math.floor(5*w/10),20)+" sprays)",1],["Rule","5 mg/kg, max 20 sprays; GCS ≥ 4"]]},
@@ -429,11 +443,61 @@ function setScope(v){scope=v;store.set("scope",v);$("scP").setAttribute("aria-pr
   if(typeof renderDirs==="function"&&$("kDirs"))try{renderDirs()}catch(e){}
   $("scNote").textContent=v==="acp"?"ACP directives first, then the PCP directives you also hold. Adult and pediatric doses are side by side; pick by age.":"";renderMeds()}
 $("scP").onclick=()=>setScope("pcp");$("scA").onclick=()=>setScope("acp");
-function medCard(m,body){return`<div class="card"><div class="med-head"><h3>${m.n}</h3><span class="route">${m.r}</span></div><p class="note" style="margin:-4px 0 0">${m.d}</p>${body}</div>`}
 const dl=rows=>`<dl class="rows">${rows.map(([a,b,big])=>`<dt>${a}</dt><dd${big?' class="big"':""}>${b}</dd>`).join("")}</dl>`;
+/* Quick overview per card: [directive, route · first dose]. Full detail sits behind "Full details". */
+const rng=(a,b,u,d=1)=>fmt(a,d)===fmt(b,d)?fmt(a,d)+" "+u:fmt(a,d)+"–"+fmt(b,d)+" "+u;
+const epiIM=w=>"IM "+fmt(r05(cap(.01*w,.5)))+" mg";
+const OV={
+ "Salbutamol":w=>[["Bronchoconstriction",w<25?"MDI 600 mcg / NEB 2.5 mg":"MDI 800 mcg / NEB 5 mg"]],
+ "Epinephrine IM":w=>[["Allergic reaction",epiIM(w)],["Bronchoconstriction",epiIM(w)],["Cardiac arrest (anaphylaxis)",epiIM(w)]],
+ "Epinephrine NEB":w=>[["Croup",w<10?"NEB 2.5 mg":"NEB 5 mg"]],
+ "Dexamethasone":w=>[["Bronchoconstriction","PO/IM/IV "+fmt(cap(.5*w,8),1)+" mg"],["Croup","PO "+fmt(cap(.5*w,8),1)+" mg"]],
+ "Diphenhydramine":w=>[["Allergic reaction",w<25?"Not under 25 kg":"IV/IM "+(w<50?"25":"50")+" mg"]],
+ "ASA":()=>[["Cardiac ischemia","PO 160–162 mg"]],
+ "Nitroglycerin":()=>[["Cardiac ischemia","SL 0.3–0.4 mg"],["Pulmonary edema","SL 0.3–0.4 mg (0.6–0.8 if SBP ≥ 140 + IV/Hx)"]],
+ "Dextrose":w=>[["Hypoglycemia","IV D10W "+fmt(cap(.2*w,25)*10,0)+" mL"]],
+ "Glucagon":w=>[["Hypoglycemia","IM "+(w<25?"0.5":"1")+" mg"]],
+ "Naloxone":()=>[["Opioid toxicity","IM 0.4 mg · IN 2–4 mg · IV up to 0.4 mg"]],
+ "Buprenorphine/naloxone":()=>[["Opioid withdrawal","BUC/SL 16 mg"]],
+ "Hydrocortisone":w=>[["Adrenal crisis","IM/IV "+fmt(r10(cap(2*w,100)),0)+" mg"]],
+ "Acetaminophen":()=>[["Analgesia","PO 960–1,000 mg (12–17 y: 500–650)"]],
+ "Ibuprofen":()=>[["Analgesia","PO 400 mg"]],
+ "Ketorolac":()=>[["Analgesia","IM/IV 10–15 mg"]],
+ "Ondansetron":w=>[["Nausea/vomiting",w<25?"Not under 25 kg":"PO/IV/IM 4 mg"]],
+ "Dimenhydrinate":w=>[["Nausea/vomiting",w<25?"Not under 25 kg":"IV/IM "+(w<50?"25 mg":"25–50 mg")]],
+ "Oxytocin":()=>[["Childbirth","IM 10 units"]],
+ "0.9% NaCl bolus":w=>[["ROSC","IV "+fmt(cap(10*w,1000),0)+" mL"],["IV & fluid (AUX)","IV "+fmt(cap(20*w,2000),0)+" mL"],["Cardiogenic shock (AUX)","IV "+fmt(cap(10*w,1000),0)+" mL"]],
+ "Tranexamic acid":()=>[["Traumatic hemorrhage (AUX)","IV/IM 1,000 mg"]],
+ "Defibrillation":w=>[["Cardiac arrest","< 8 y: "+fmt(2*w,0)+" J; ≥ 8 y per RBHP"]],
+ "Epinephrine (arrest)":w=>[["Cardiac arrest","IV/IO 1 mg (< 12 y: "+fmt(r05(Math.max(.01*w,.05)))+" mg)"]],
+ "Amiodarone (arrest)":w=>[["Cardiac arrest","IV/IO 300 mg (< 12 y: "+fmt(cap(5*w,300),0)+" mg)"]],
+ "Lidocaine (arrest)":w=>[["Cardiac arrest","IV/IO "+fmt(1.5*w,0)+" mg (< 12 y: "+fmt(w,0)+" mg)"]],
+ "Adenosine":()=>[["Tachydysrhythmia","IV 6 mg rapid"]],
+ "Amiodarone (tachy)":()=>[["Tachydysrhythmia (patch)","IV 150 mg over 10 min"]],
+ "Lidocaine (tachy)":w=>[["Tachydysrhythmia (patch)","IV "+fmt(cap(1.5*w,150),0)+" mg"]],
+ "Synchronized cardioversion":()=>[["Tachydysrhythmia (patch)","Per BHP; patch fail 100 J"]],
+ "Atropine":()=>[["Symptomatic bradycardia","IV 1 mg"]],
+ "Dopamine":w=>[["ROSC · shock · bradycardia","IV 5 mcg/kg/min = "+fmt(5*w*60/800,0)+" mL/h"]],
+ "Calcium gluconate 10%":()=>[["Hyperkalemia","IV 1 g over 2–3 min"]],
+ "Salbutamol (hyperkalemia)":()=>[["Hyperkalemia","MDI 1,600 mcg / NEB 10 mg"]],
+ "Dextrose < 2 y":w=>[["Hypoglycemia","IV D10W "+fmt(cap(.2*w,5)*10,0)+" mL"]],
+ "Midazolam":w=>[["Seizure","IV/IO "+fmt(cap(.1*w,5),1)+" mg · IM/IN "+fmt(cap(.2*w,10),1)+" mg"],["Combative","IV/IM/IN up to "+fmt(cap(.1*w,5),1)+" mg"],["Procedural sedation (AUX)","IV/IN up to "+fmt(cap(.1*w,5),1)+" mg"]],
+ "Fentanyl":w=>[["Analgesia","IV/IN 25–75 mcg (peds up to "+fmt(cap(w,75),0)+" mcg)"],["Procedural sedation (AUX)","IV/IN 25–75 mcg"]],
+ "Morphine":w=>[["Analgesia","IV/SC 2–10 mg (peds "+rng(cap(.05*w,5),cap(.1*w,5),"mg")+")"],["Cardiac ischemia","IV 2 mg"]],
+ "Ketamine":w=>[["Analgesia","IV "+fmt(cap(.25*w,20),1)+" mg · IN "+fmt(cap(w,75),0)+" mg"],["Combative","IM "+fmt(cap(5*w,500),0)+" mg (≥ 65 y: "+fmt(cap(3*w,300),0)+" mg)"]],
+ "Lidocaine spray":w=>[["Intubation","Topical, max "+Math.min(Math.floor(5*w/10),20)+" sprays"]],
+ "Epinephrine (newborn)":w=>[["Newborn resuscitation","IV/IO "+fmt(Math.max(.01*w,.05),2)+" mg"]],
+ "0.9% NaCl (ACP)":w=>[["Arrest · hypotension","IV/IO "+fmt(cap(20*w,2000),0)+" mL"],["ROSC · cardiogenic shock","IV/IO "+fmt(cap(10*w,1000),0)+" mL"]],
+};
+function medCard(m,body,ov){return`<div class="card"><div class="med-head"><h3>${m.n}</h3><span class="route">${m.r}</span></div>${ov}${body}</div>`}
+const ovl=rows=>`<dl class="ov">${rows.map(([a,b])=>`<dt>${a}</dt><dd>${b}</dd>`).join("")}</dl>`;
 function renderMeds(){
   const list=scope==="acp"?[...ACP,...PCP.filter(p=>!["Hydrocortisone"].includes(p.n))]:PCP;
-  $("medList").innerHTML=list.map(m=>{let b;if(m.w&&!kg)b=`<div class="empty">${NW}</div>`;else{const o=m.f(kg);b=typeof o==="string"?`<div class="empty">${o}</div>`:dl(o)}return medCard(m,b)}).join("");
+  $("medList").innerHTML=list.map(m=>{
+    if(m.w&&!kg)return medCard(m,`<div class="empty">${NW}</div>`,ovl((OV[m.n]?OV[m.n](70):[]).map(([a])=>[a,"—"])));
+    const o=m.f(kg),ov=OV[m.n]?ovl(OV[m.n](kg)):"";
+    const full=typeof o==="string"?`<div class="empty">${o}</div>`:`<details class="more"><summary>Full details</summary>${dl(o)}</details>`;
+    return medCard(m,full,ov)}).join("");
   doseCalc(); infusion();
 }
 
@@ -1000,17 +1064,25 @@ function check(){
   const isDir=r=>r.f.some(f=>f[0]===DIR),hasSug=r=>r.f.some(f=>f[0]===SUG);
   const nD=res.filter(isDir).length,nS=res.filter(r=>!isDir(r)&&hasSug(r)).length;
   const anticoagHead=(c("anticoag")||c("antiplt"))&&(h(x,"head")||h(x,"cvaTbi")||h(x,"isoHead"));
-  $("ckSum").innerHTML=`<b>${D.n}</b> · <b class="sev-crit">${nD} directive</b> · <b class="sev-warn">${nS} suggested</b>`;
+  const PILL={cntr:'<span class="pill p-cntr">CNTR</span>',cond:'<span class="pill p-cond">COND</span>',patch:'<span class="pill p-patch">PATCH</span>',sugg:'<span class="pill p-sugg">SUGG</span>',info:'<span class="pill p-info">INFO</span>'};
+  const kindDir=t=>/^Condition/.test(t)?"cond":/patch/i.test(t)?"patch":"cntr";
+  const kindNote=t=>/stop if SBP drops|^nebulization contraindicated/i.test(t)?"cntr":/patch/i.test(t)?"patch":/co-administer|together|sequential|titrate|wean|treat reversible|may use|may start|if ondansetron|IN powder|^max |infuse|use amiodarone OR|inhaled steroids|judgement|IM has no/i.test(t)?"info":"cond";
+  const clean=t=>{t=t.replace(/^Condition( for [^:]+)?: /,(m,g)=>g?g.trim().replace(/^for /,"")+": ":"");return t.charAt(0).toUpperCase()+t.slice(1)};
+  const out=res.map(r=>{
+    const hit=[];r.f.forEach(([lv,t])=>{if(lv===DIR)hit.push([kindDir(t),clean(t)]);if(lv===SUG)hit.push(["sugg",t])});
+    const ver=[];r.f.filter(f=>f[0]===NOTE).forEach(([,t])=>t.split(/;\s*/).forEach(p=>ver.push([kindNote(p),p.charAt(0).toUpperCase()+p.slice(1)])));
+    const has=k=>hit.some(i=>i[0]===k);
+    const st=has("cntr")?["ci","sev-crit","Contraindicated"]:has("cond")?["cond","sev-cond","Condition not met"]:has("patch")?["cond","","Patch required"]:has("sugg")?["ca","sev-warn","Suggested risk"]:["okc","sev-ok","No flags"];
+    const order={cntr:0,cond:1,patch:2,sugg:3,info:4};hit.sort((a,b)=>order[a[0]]-order[b[0]]);ver.sort((a,b)=>order[a[0]]-order[b[0]]);
+    return{st,html:`<div class="flag ${st[0]}"><h3>${r.n}<span class="${st[1]}">${st[2]}</span></h3>
+     ${hit.length?`<ul class="items">${hit.map(([k,t])=>`<li>${PILL[k]}${k==="sugg"?t:"<b>"+t+"</b>"}</li>`).join("")}</ul>`:`<p class="note" style="margin:0">Nothing from your entries.</p>`}
+     ${ver.length?`<p class="sub">Also check (directive)</p><ul class="items">${ver.map(([k,t])=>`<li>${PILL[k]}${t}</li>`).join("")}</ul>`:""}</div>`}});
+  const cnt=k=>out.filter(o=>o.st[2]===k).length;
+  $("ckSum").innerHTML=`<b>${D.n}</b> · <b class="sev-crit">${cnt("Contraindicated")} CNTR</b> · <b class="sev-cond">${cnt("Condition not met")} COND</b> · <b class="sev-warn">${cnt("Suggested risk")} SUGG</b>`;
   const used=usedInputs(D).cls,meds=[...picked].map(n=>{const cl=n.startsWith("[")?[Object.keys(CLS).find(k=>"["+CLS[k]+"]"===n)]:(DRUGS[n]||[]);return[n,cl.some(k=>used.has(k))]});
   const quiet=meds.filter(m=>!m[1]).map(m=>m[0]);
-  $("ckOut").innerHTML=(anticoagHead?`<div class="flag ca"><h3>Alert<span class="sev-warn">Suggested</span></h3><ul><li><b>Head injury on anticoagulant/antiplatelet: high bleed risk (FTTG Step 4 special criteria). Note agent and last dose.</b></li></ul></div>`:"")+
-   res.map(r=>{const d=isDir(r),s=hasSug(r),dirs=r.f.filter(f=>f[0]===DIR),sugs=r.f.filter(f=>f[0]===SUG),notes=r.f.filter(f=>f[0]===NOTE);
-    const tag=d?`<span class="sev-crit">Directive</span>`:s?`<span class="sev-warn">Suggested</span>`:`<span class="sev-ok">No flags</span>`;
-    return`<div class="flag ${d?"ci":s?"ca":"okc"}"><h3>${r.n}${tag}</h3>
-     ${dirs.length?`<ul>${dirs.map(f=>`<li><b>${f[1]}</b></li>`).join("")}</ul>`:""}
-     ${sugs.length?`<p class="note" style="margin:4px 0 0"><b class="sev-warn">Suggested</b> (not in directive)</p><ul>${sugs.map(f=>`<li>${f[1]}</li>`).join("")}</ul>`:""}
-     ${notes.length?`<p class="note" style="margin:2px 0 0">Also in directive: ${notes.map(f=>f[1]).join("; ")}</p>`:""}
-     ${!d&&!s?`<p class="note" style="margin:0">Nothing from what you've entered.</p>`:""}</div>`}).join("")+
+  $("ckOut").innerHTML=(anticoagHead?`<div class="flag ca"><h3>Alert<span class="sev-warn">Suggested risk</span></h3><ul class="items"><li>${PILL.sugg}<b>Head injury on anticoagulant/antiplatelet: high bleed risk (FTTG Step 4 special criteria). Note agent and last dose.</b></li></ul></div>`:"")+
+   out.map(o=>o.html).join("")+
    (quiet.length?`<div class="card"><h3>Home meds with no flags here</h3><p class="note" style="margin:0">${quiet.join(" · ")}: not relevant to any drug in ${D.n}.</p></div>`:"");
 }
 
