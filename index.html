@@ -18,17 +18,16 @@ img{max-width:100%}[hidden]{display:none!important}
 a{color:var(--accent)}
 </style>
 <title>Medic Pocket Calc</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Semi+Condensed:wght@600;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
 <style>
 /* Layout: sticky patient-weight bar on top, one tool per tab, fixed bottom tab bar for one-thumb use */
 :root{
   --bg:#e9edf1; --surface:#ffffff; --surface-2:#f3f5f8; --ink:#14202b; --muted:#566573; --line:#d3dae1;
   --accent:#a14b00; --accent-ink:#ffffff; --accent-soft:#fbe7d3;
   --ok:#2e7d32; --warn:#b26a00; --crit:#c62828; --cond:#3f51b5;
-  --display:"Barlow Semi Condensed","Arial Narrow",system-ui,sans-serif;
-  --body:"Barlow",system-ui,-apple-system,sans-serif;
-  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+  /* System fonts only: nothing to download, identical offline and online */
+  --display:system-ui,-apple-system,"Helvetica Neue",sans-serif;
+  --body:system-ui,-apple-system,"Helvetica Neue",sans-serif;
+  --mono:ui-monospace,"SF Mono",Menlo,monospace;
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
   --bg:#0d1319; --surface:#162029; --surface-2:#1d2933; --ink:#e7edf2; --muted:#93a3b1; --line:#2a3845;
@@ -87,6 +86,7 @@ h3{font-family:var(--display);font-size:17px;margin:0;text-wrap:balance}
 .opt{display:flex;gap:10px;align-items:center;text-align:left;font:500 15px var(--body);padding:9px 10px;border:1px solid var(--line);border-radius:8px;background:var(--surface-2);color:var(--ink)}
 .opt b{font-family:var(--mono);min-width:22px;display:inline-block;text-align:center}
 .opt[aria-pressed=true]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.opt[aria-pressed=true] small{color:inherit;opacity:.85}
 .total{position:sticky;top:calc(env(safe-area-inset-top,0px) + var(--hdr,112px));z-index:4;display:flex;justify-content:space-between;align-items:center;gap:10px;background:var(--ink);color:var(--bg);border-radius:10px;padding:10px 14px}
 .total .n{font-family:var(--mono);font-size:30px;font-weight:600;font-variant-numeric:tabular-nums}
 .total .lbl{font-size:13px;line-height:1.25}
@@ -109,9 +109,15 @@ input[type=search]{font:500 16px var(--body);padding:9px 10px;border:1px solid v
 .how{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
 .how summary{font:600 15px var(--display);cursor:pointer}
 .how ul{margin:8px 0 0;padding-left:18px;font-size:14px;display:flex;flex-direction:column;gap:4px}
-.ov{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 12px;margin:0}
-.ov dt{font-size:14px;color:var(--muted)}
-.ov dd{margin:0;font:600 16px var(--mono);color:var(--accent);text-align:right;font-variant-numeric:tabular-nums}
+/* Overview rows: label left, dose right; the dose drops to its own line when both won't fit */
+.ov{display:flex;flex-direction:column;gap:6px;margin:0}
+.ovr{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:2px 12px}
+.ovr dt{font-size:14px;color:var(--muted);min-width:0;overflow-wrap:anywhere}
+.ovr dd{margin:0 0 0 auto;font:600 16px var(--mono);color:var(--accent);text-align:right;font-variant-numeric:tabular-nums}
+.brand .newpt{font:600 13px var(--body);padding:6px 10px;border-radius:8px;border:1px solid var(--accent);background:transparent;color:var(--accent);white-space:nowrap}
+.brand .newpt.armed{background:var(--crit);border-color:var(--crit);color:var(--bg)}
+.wwarn{margin:0;font-size:13px;font-weight:600;color:var(--crit)}
+.upd{font:600 14px var(--body);padding:9px 12px;border-radius:8px;border:0;background:var(--accent);color:var(--accent-ink);text-align:left}
 .more summary{font:600 14px var(--body);color:var(--muted);cursor:pointer;padding-top:4px}
 .more dl{margin-top:8px}
 .rows dd{font-size:15px}
@@ -134,7 +140,8 @@ nav.tabs button[aria-selected=true]{color:var(--accent);border-top-color:var(--a
 <body>
 <header class="bar" id="hdr">
   <div class="wrap">
-    <div class="brand"><h1>Medic <span>Pocket</span> Calc</h1><small>Patient weight drives all doses</small></div>
+    <button class="upd" id="updBar" hidden>Update ready · tap to reload (clears current entries)</button>
+    <div class="brand"><h1>Medic <span>Pocket</span> Calc</h1><button class="newpt" id="newPt">New patient</button></div>
     <div class="wt">
       <label for="wIn">Weight</label>
       <input id="wIn" type="number" inputmode="decimal" placeholder="—" min="0" step="0.1">
@@ -143,6 +150,7 @@ nav.tabs button[aria-selected=true]{color:var(--accent);border-top-color:var(--a
       </div>
       <span class="alt" id="wAlt"></span>
     </div>
+    <p class="wwarn" id="wWarn" hidden></p>
   </div>
 </header>
 
@@ -156,6 +164,7 @@ nav.tabs button[aria-selected=true]{color:var(--accent);border-top-color:var(--a
   </div>
   <p class="note" id="scNote"></p>
   <p class="warnbox">Doses and conditions are from the <a href="https://www.ontario.ca/files/2025-04/moh-advanced-life-support-als-patient-care-standards-pcs-5.4-en-2025-04-23.pdf" target="_blank" rel="noopener">ALS PCS v5.4</a>. Volumes appear only where the PCS states a concentration. Your RBHP authorization decides what you can give, including auxiliary (AUX) directives.</p>
+  <p class="note" id="auxSum"></p>
   <div id="medList" style="display:flex;flex-direction:column;gap:10px"></div>
   <p class="note">Need a drug that isn't listed? Use the Dose tab to work from any concentration.</p>
 </section>
@@ -247,6 +256,13 @@ nav.tabs button[aria-selected=true]{color:var(--accent);border-top-color:var(--a
 <!-- TOOLS -->
 <section class="view" id="v-tools" hidden>
   <h2>Tools</h2>
+  <div class="card" id="settings" style="scroll-margin-top:140px">
+    <h3>Settings: base hospital and auxiliary directives</h3>
+    <div class="field"><label for="bhSel">Regional base hospital</label><select id="bhSel" style="font:500 16px var(--body)"></select></div>
+    <p class="note" style="margin:0">Switch on only the auxiliary (AUX) directives your base hospital has authorized you for. Switched-off directives are hidden from the Meds and Check tabs. Each base hospital keeps its own choices. This app has no base-hospital-specific content: doses still come from the ALS PCS.</p>
+    <div class="opts" id="auxList"></div>
+  </div>
+  <p class="note">Conversions are plain math. The clinical cut-offs and formulas on this tab (MAP, shock index, APLS weights, rule of nines, Parkland) are general references, not Ontario standards. In the field, your directives govern.</p>
   <div class="card">
     <h3>Pounds ↔ kilograms</h3>
     <div class="grid2">
@@ -296,7 +312,7 @@ nav.tabs button[aria-selected=true]{color:var(--accent);border-top-color:var(--a
       <div class="field"><label for="aUnit">Unit</label><select id="aUnit"><option value="y">years</option><option value="m">months</option></select></div>
     </div>
     <div class="out" id="aOut">—</div>
-    <p class="note">APLS formulas: &lt;12 mo 0.5×months+4; 1–5 y 2×age+8; 6–12 y 3×age+7. A length-based tape is more accurate.</p>
+    <p class="note">General reference (APLS formulas), not an Ontario standard: &lt;12 mo 0.5×months+4; 1–5 y 2×age+8; 6–12 y 3×age+7. A length-based tape is more accurate.</p>
     <button class="btn" id="aUse" style="align-self:flex-start">Use as patient weight</button>
   </div>
 <h2 style="margin-top:8px">Burns: rule of nines</h2>
@@ -311,11 +327,12 @@ nav.tabs button[aria-selected=true]{color:var(--accent);border-top-color:var(--a
       <button class="btn" id="pPlus" aria-label="Add one palm">+</button>
     </div>
   </div>
-  <div class="card"><h3>Parkland formula</h3><dl class="rows" id="park"></dl><p class="note">4 mL × kg × %TBSA over 24 h, half in the first 8 h from time of burn. Reference for receiving facility; follow your own fluid directive in the field.</p></div>
+  <div class="card"><h3>Parkland formula</h3><dl class="rows" id="park"></dl><p class="note">General reference, not an Ontario standard. 4 mL × kg × %TBSA over 24 h, half in the first 8 h from time of burn. For the receiving facility; follow your own fluid directive in the field.</p></div>
   <div class="card" id="refs">
     <h3>References</h3>
     <ul style="margin:0;padding-left:18px;display:flex;flex-direction:column;gap:6px">
-      <li><a href="https://www.ontario.ca/files/2025-04/moh-advanced-life-support-als-patient-care-standards-pcs-5.4-en-2025-04-23.pdf" target="_blank" rel="noopener">ALS Patient Care Standards v5.4</a> <span class="note">· Ontario MOH, in force June 2, 2025</span></li>
+      <li><a href="https://www.ontario.ca/files/2025-04/moh-advanced-life-support-als-patient-care-standards-pcs-5.4-en-2025-04-23.pdf" target="_blank" rel="noopener">ALS Patient Care Standards v5.4</a> <span class="note">· Ontario MOH, in force June 2, 2025. This app follows v5.4.</span></li>
+      <li><a href="https://www.ontario.ca/files/2026-08/moh-advanced-life-support-als-patient-care-standards-pcs-5.5-en-2025-08-18.pdf" target="_blank" rel="noopener">ALS PCS v5.5</a> <span class="note">· published, in-force date TBD. Changes cardiac arrest, newborn resuscitation and PCP nausea/vomiting, among others. Not reflected here until it's in force and reviewed.</span></li>
       <li><a href="https://files.ontario.ca/moh_2/moh-standards-basic-life-support-patient-care-standards-v3-4-en-2023-03-10.pdf" target="_blank" rel="noopener">BLS Patient Care Standards v3.4</a> <span class="note">· Ontario MOH, incl. FTTG, SMR, STEMI and stroke prompt cards</span></li>
       <li><a href="https://www.ontario.ca/document/patient-care-documents-reference" target="_blank" rel="noopener">Ontario patient care documents</a> <span class="note">· check here for newer versions</span></li>
       <li><a href="https://www.prehospitalmedicine.ca/" target="_blank" rel="noopener">Sunnybrook Centre for Prehospital Medicine</a> <span class="note">· regional base hospital</span></li>
@@ -372,16 +389,28 @@ const LB=2.20462;
 const fmt=(n,d=2)=>{if(n==null||!isFinite(n))return"—";return(+n.toFixed(d)).toString()};
 const store={get(k,d){try{const v=localStorage.getItem("mpc_"+k);return v==null?d:JSON.parse(v)}catch(e){return d}},set(k,v){try{localStorage.setItem("mpc_"+k,JSON.stringify(v))}catch(e){}}};
 
+/* Patient data (weight, scores, checklists, burns, calculator entries) lives in memory only.
+   It is never written to the phone, so the next patient can't inherit it. Only preferences
+   (PCP/ACP, kg/lb, last tab) and Recent score lines are saved. */
+["kg","nihss","dose","inf","burns","palms"].forEach(k=>{try{localStorage.removeItem("mpc_"+k)}catch(e){}});
+try{Object.keys(localStorage).filter(k=>/^mpc_(adv|pr)_/.test(k)).forEach(k=>localStorage.removeItem(k))}catch(e){}
+
 /* ---------- weight ---------- */
-let kg=store.get("kg",null), unit=store.get("unit","kg");
+let kg=null, kgAt=null, unit=store.get("unit","kg");
+const hm=t=>{const d=new Date(t),p=n=>String(n).padStart(2,"0");return p(d.getHours())+":"+p(d.getMinutes())};
+function wInfo(){
+  $("wAlt").textContent=kg?(unit==="kg"?`= ${fmt(kg*LB,1)} lb`:`= ${fmt(kg,1)} kg`)+(kgAt?` · set ${hm(kgAt)}`:""):"";
+  const w=$("wWarn"),bad=kg&&(kg>250||kg<1);w.hidden=!bad;
+  if(bad)w.textContent=`Check weight: ${fmt(kg,1)} kg is outside 1–250 kg. Typo or wrong unit?`;
+  hdr();
+}
 function showWeight(){
   $("uKg").setAttribute("aria-pressed",unit==="kg");$("uLb").setAttribute("aria-pressed",unit==="lb");
-  if(kg){ $("wIn").value=fmt(unit==="kg"?kg:kg*LB,1); $("wAlt").textContent=unit==="kg"?`= ${fmt(kg*LB,1)} lb`:`= ${fmt(kg,1)} kg`; }
-  else{ $("wIn").value=""; $("wAlt").textContent=""; }
+  $("wIn").value=kg?fmt(unit==="kg"?kg:kg*LB,1):"";wInfo();
 }
-function setKg(v){kg=v>0?v:null;store.set("kg",kg);showWeight();renderMeds();renderBurns();}
-$("wIn").addEventListener("input",e=>{const v=parseFloat(e.target.value);kg=v>0?(unit==="kg"?v:v/LB):null;store.set("kg",kg);
-  $("wAlt").textContent=kg?(unit==="kg"?`= ${fmt(kg*LB,1)} lb`:`= ${fmt(kg,1)} kg`):"";renderMeds();renderBurns();});
+function setKg(v){kg=v>0?v:null;kgAt=kg?Date.now():null;showWeight();renderMeds();renderBurns();}
+$("wIn").addEventListener("input",e=>{const v=parseFloat(e.target.value);kg=v>0?(unit==="kg"?v:v/LB):null;kgAt=kg?Date.now():null;
+  wInfo();renderMeds();renderBurns();});
 $("uKg").onclick=()=>{unit="kg";store.set("unit",unit);showWeight()};
 $("uLb").onclick=()=>{unit="lb";store.set("unit",unit);showWeight()};
 
@@ -413,7 +442,7 @@ const PCP=[
  {n:"Dimenhydrinate",d:"Nausea/vomiting",r:"IV / IM · 50 mg/mL",w:1,f:w=>w<25?"Directive condition: weight ≥ 25 kg.":w<50?[["Dose","25 mg (0.5 mL)",1],["Band","25–49 kg, max 1"],["IV","dilute 1:9 with NS or D5W; IM undiluted"]]:[["Dose","25 or 50 mg",1],["Band","≥ 50 kg; q30 min, max 2, total 50 mg"],["IV","dilute 1:9 with NS or D5W; IM undiluted"],["≥ 65 y","if no ondansetron, weigh risk; may start 25 mg"]]},
  {n:"Oxytocin",d:"Emergency childbirth",r:"IM",f:()=>[["Dose","10 units",1],["Max","1 dose"],["Conditions","postpartum, SBP < 160"]]},
  {n:"0.9% NaCl bolus",d:"ROSC · IV & fluid (AUX) · Cardiogenic shock (AUX)",r:"IV",w:1,f:w=>[["ROSC 10 mL/kg",fmt(cap(10*w,1000),0)+" mL (max 1,000)",1],["Hypotension 20 mL/kg",fmt(cap(20*w,2000),0)+" mL (max 2,000; AUX)"],["Cardiogenic shock",fmt(cap(10*w,1000),0)+" mL (≥ 18 y; AUX)"],["Reassess","every 250 mL (≥ 12 y) / 100 mL (2–11 y)"]]},
- {n:"Tranexamic acid",d:"Traumatic hemorrhage (AUX)",r:"IV (slow, ≥ 5 min) / IM",f:()=>[["Dose","1,000 mg",1],["Max","1 dose"],["Conditions","≥ 16 y, HR ≥ 110 or hypotension, ≤ 3 h from injury"]]},
+ {n:"Tranexamic acid",aux:"hemorrhage",d:"Traumatic hemorrhage (AUX)",r:"IV (slow, ≥ 5 min) / IM",f:()=>[["Dose","1,000 mg",1],["Max","1 dose"],["Conditions","≥ 16 y, HR ≥ 110 or hypotension, ≤ 3 h from injury"]]},
  {n:"Defibrillation",d:"Medical & trauma cardiac arrest",r:"Manual",w:1,f:w=>[["< 8 y",fmt(2*w,0)+" J, then "+fmt(4*w,0)+" J",1],["≥ 8 y","per RBHP / manufacturer"],["Interval","2 min"]]},
 ];
 const ACP=[
@@ -489,14 +518,41 @@ const OV={
  "Epinephrine (newborn)":w=>[["Newborn resuscitation","IV/IO "+fmt(Math.max(.01*w,.05),2)+" mg"]],
  "0.9% NaCl (ACP)":w=>[["Arrest · hypotension","IV/IO "+fmt(cap(20*w,2000),0)+" mL"],["ROSC · cardiogenic shock","IV/IO "+fmt(cap(10*w,1000),0)+" mL"]],
 };
+/* ---------- base hospital + auxiliary directive settings (preferences, saved) ----------
+   Selecting a base hospital loads no content from it; it only stores which AUX directives are switched on. */
+const BH=[["","Not set"],["sunnybrook","Sunnybrook Centre for Prehospital Medicine"],["cper","Centre for Paramedic Education & Research (Hamilton)"],
+ ["cepcp","Central East Prehospital Care Program"],["rppeo","Regional Paramedic Program for Eastern Ontario"],["swo","Southwest Ontario Regional Base Hospital Program"],
+ ["hsn","Centre for Prehospital Care, Health Sciences North"],["nw","Northwest Regional Base Hospital Program"]];
+/* AUX directives this app contains. rows: overview/detail row labels that belong to the directive. */
+const AUX=[
+ {id:"ivfluid",n:"IV & fluid therapy",scope:"PCP",rows:/^Hypotension 20 mL\/kg$|^IV & fluid \(AUX\)$/},
+ {id:"pcpcshock",n:"Cardiogenic shock",scope:"PCP",rows:/^Cardiogenic shock( \(AUX\))?$/},
+ {id:"hemorrhage",n:"Traumatic hemorrhage (TXA)",scope:"PCP & ACP"},
+ {id:"sedation",n:"Procedural sedation",scope:"ACP",rows:/^Sedation \(AUX\)$|^Procedural sedation \(AUX\)$/},
+];
+let bh=store.get("bh","");
+let auxOff=new Set(store.get("auxOff_"+bh,[]));
+const auxOn=id=>!auxOff.has(id);
+const auxRows=rows=>rows.filter(([a])=>!AUX.some(x=>x.rows&&!auxOn(x.id)&&x.rows.test(a)));
+function renderSettings(){
+  $("bhSel").innerHTML=BH.map(([v,l])=>`<option value="${v}"${v===bh?" selected":""}>${l}</option>`).join("");
+  $("auxList").innerHTML=AUX.map(x=>`<button class="opt" data-aux="${x.id}" aria-pressed="${auxOn(x.id)}"><b>${auxOn(x.id)?"On":"Off"}</b><span>${x.n} <small class="note">· ${x.scope}</small></span></button>`).join("");
+  const on=AUX.filter(x=>auxOn(x.id)).map(x=>x.n);
+  $("auxSum").innerHTML=`Base hospital: <b>${bh?BH.find(b=>b[0]===bh)[1]:"not set"}</b> · AUX on: ${on.length?on.join(", "):"none"} · <a href="#settings" id="auxGo">change</a>`;
+}
+function auxChanged(){store.set("auxOff_"+bh,[...auxOff]);renderSettings();renderMeds();renderDirs()}
+$("bhSel").onchange=e=>{bh=e.target.value;store.set("bh",bh);auxOff=new Set(store.get("auxOff_"+bh,[]));renderSettings();renderMeds();renderDirs()};
+$("auxList").onclick=e=>{const b=e.target.closest("[data-aux]");if(!b)return;const id=b.dataset.aux;auxOff.has(id)?auxOff.delete(id):auxOff.add(id);auxChanged()};
+$("auxSum").onclick=e=>{if(e.target.id==="auxGo"){e.preventDefault();go("tools");$("settings").scrollIntoView()}};
+
 function medCard(m,body,ov){return`<div class="card"><div class="med-head"><h3>${m.n}</h3><span class="route">${m.r}</span></div>${ov}${body}</div>`}
-const ovl=rows=>`<dl class="ov">${rows.map(([a,b])=>`<dt>${a}</dt><dd>${b}</dd>`).join("")}</dl>`;
+const ovl=rows=>`<dl class="ov">${rows.map(([a,b])=>`<div class="ovr"><dt>${a}</dt><dd>${b}</dd></div>`).join("")}</dl>`;
 function renderMeds(){
-  const list=scope==="acp"?[...ACP,...PCP.filter(p=>!["Hydrocortisone"].includes(p.n))]:PCP;
+  const list=(scope==="acp"?[...ACP,...PCP.filter(p=>!["Hydrocortisone"].includes(p.n))]:PCP).filter(m=>!m.aux||auxOn(m.aux));
   $("medList").innerHTML=list.map(m=>{
-    if(m.w&&!kg)return medCard(m,`<div class="empty">${NW}</div>`,ovl((OV[m.n]?OV[m.n](70):[]).map(([a])=>[a,"—"])));
-    const o=m.f(kg),ov=OV[m.n]?ovl(OV[m.n](kg)):"";
-    const full=typeof o==="string"?`<div class="empty">${o}</div>`:`<details class="more"><summary>Full details</summary>${dl(o)}</details>`;
+    if(m.w&&!kg)return medCard(m,`<div class="empty">${NW}</div>`,ovl(auxRows(OV[m.n]?OV[m.n](70):[]).map(([a])=>[a,"—"])));
+    const o=m.f(kg),ov=OV[m.n]?ovl(auxRows(OV[m.n](kg))):"";
+    const full=typeof o==="string"?`<div class="empty">${o}</div>`:`<details class="more"><summary>Full details</summary>${dl(auxRows(o))}</details>`;
     return medCard(m,full,ov)}).join("");
   doseCalc(); infusion();
 }
@@ -518,7 +574,7 @@ function doseCalc(){
   const r=[],oA=num("oAmt"),oU=$("oUnit").value,mx=num("oMax"),sA=num("sAmt"),sU=$("sUnit").value,sV=num("sVol");
   // stock concentration
   if(sA>0&&sV>0){$("sConc").textContent=`${showU(sA*TO[sU]/sV,sU)}/mL`}else $("sConc").textContent="—";
-  if(!(oA>0)){$("doseOut").innerHTML=`<dt>Result</dt><dd>enter ordered dose</dd>`;store.set("dose",DOSE_IDS.map(i=>$(i).value));return}
+  if(!(oA>0)){$("doseOut").innerHTML=`<dt>Result</dt><dd>enter ordered dose</dd>`;return}
   let dose=oA*TO[oU];
   if(perKg){ if(!kg){$("doseOut").innerHTML=`<dt>Result</dt><dd>enter patient weight</dd>`;return}
     dose*=kg; if(mx>0&&dose>mx*TO[oU]){dose=mx*TO[oU];r.push(["Note","capped at max dose"])}}
@@ -539,11 +595,9 @@ function doseCalc(){
     }
   }
   $("doseOut").innerHTML=r.map(([a,b,big])=>`<dt>${a}</dt><dd${big?' class="big"':""}>${b}</dd>`).join("");
-  store.set("dose",DOSE_IDS.map(i=>$(i).value));
 }
 function infusion(){
   const d=num("iDose"),[du,pk,per]=$("iUnit").value.split("|"),bA=num("iBag"),bU=$("iBagU").value,bV=num("iVol"),set=+$("iSet").value;
-  store.set("inf",INF_IDS.map(i=>$(i).value));
   if(!(d>0&&bA>0&&bV>0)){$("iOut").innerHTML="";return}
   if(fam(du)!==fam(bU)){$("iOut").innerHTML=`<dt>Units</dt><dd>dose and bag units don't match</dd>`;return}
   if(pk&&!kg){$("iOut").innerHTML=`<dt>Needs</dt><dd>patient weight</dd>`;return}
@@ -551,8 +605,6 @@ function infusion(){
   const conc=bA*TO[bU]/bV, mlh=perMin*60/conc;
   $("iOut").innerHTML=`<dt>Bag conc.</dt><dd>${showU(conc,bU)}/mL</dd><dt>Pump rate</dt><dd class="big">${fmt(mlh,1)} mL/h</dd><dt>Gravity</dt><dd>${fmt(mlh*set/60,0)} gtt/min</dd><dt>Bag lasts</dt><dd>${fmt(bV/mlh*60,0)} min</dd>`;
 }
-(()=>{const v=store.get("dose",null);if(v)DOSE_IDS.forEach((id,i)=>$(id).value=v[i]);
-  const w=store.get("inf",null);if(w)INF_IDS.forEach((id,i)=>{if(w[i]!==undefined&&w[i]!=="")$(id).value=w[i]});})();
 DOSE_IDS.forEach(id=>$(id).addEventListener("input",doseCalc));
 INF_IDS.forEach(id=>$(id).addEventListener("input",infusion));
 
@@ -590,11 +642,11 @@ const NI=[
  {t:"10 · Dysarthria",o:[[0,"Normal"],[1,"Mild to moderate slurring"],[2,"Severe / unintelligible / mute"]]},
  {t:"11 · Extinction / inattention",o:[[0,"No abnormality"],[1,"Inattention in one modality"],[2,"Profound, more than one modality"]]},
 ];
-let nState=store.get("nihss",Array(NI.length).fill(null));
+let nState=Array(NI.length).fill(null);
 function nUpdate(){const done=nState.filter(v=>v!=null).length,t=sumOf(NI,nState);
   $("nTot").textContent=t;
   const sev=t===0?"No stroke symptoms":t<=4?"Minor":t<=15?"Moderate":t<=20?"Moderate to severe":"Severe";
-  $("nLbl").innerHTML=`${done} of ${NI.length} scored<br>${done?sev:""}`;store.set("nihss",nState);
+  $("nLbl").innerHTML=`${done} of ${NI.length} scored<br>${done?sev:""}`;
   const pos=NI.map((it,i)=>[keyOf(it),val(NI,nState,i)]).filter(x=>x[1]);
   $("nRep").textContent=done?`NIHSS ${t} (${sev.toLowerCase()})${pos.length?": "+pos.map(x=>x[0]+" "+x[1]).join(", "):""}${done<NI.length?` [${NI.length-done} items not scored]`:""}`:"Score items to build the line.";}
 $("nCopy").onclick=()=>copyText($("nRep"),$("nCopy"));
@@ -704,6 +756,8 @@ function renderRecent(){
     if(d){recent.splice(+d.dataset.d,1);store.set("recent",recent);renderRecent()}
     if(e.target.id==="rClr"){if(e.target.dataset.arm){recent=[];store.set("recent",recent);renderRecent()}else{e.target.dataset.arm=1;e.target.textContent="Tap again to clear all"}}};
 }
+/* In-memory state for scales and checklists (cleared by New patient) */
+const advMem={},prMem={};
 /* ---------- Ontario protocol checklists (BLS PCS v3.4 prompt cards) ---------- */
 const PROTO=[
  {id:"stroke",n:"Stroke bypass",full:"Acute Stroke Bypass Protocol",src:"BLS PCS v3.4, Stroke Prompt Card",
@@ -753,12 +807,12 @@ const PROTO=[
 function protoLine(p,s){const[t]=p.interp(s);const on=p.g.flatMap(g=>g[1]).filter(([k])=>s.has(k)).map(([,l])=>l.split(/[:(,]/)[0].trim());return`${p.full}: ${t}${on.length?" ["+on.join("; ")+"]":""}`}
 function renderProto(p){
   document.querySelectorAll("#advPick .chip").forEach(b=>b.setAttribute("aria-pressed",b.dataset.id===p.id));
-  const s=new Set(store.get("pr_"+p.id,[]));
+  const s=prMem[p.id]||(prMem[p.id]=new Set());
   $("advBody").innerHTML=`<h3>${p.full}</h3><p class="note">${p.use} <i>${p.src}.</i></p>
    <div class="total"><div class="lbl" id="prLbl" style="flex:1"></div><button id="prReset">Reset</button></div>
    ${p.g.map(([gt,items])=>`<div class="card"><h3>${gt}</h3><div class="opts">${items.map(([k,l])=>`<button class="opt" data-k="${k}" aria-pressed="false"><b>${"✓"}</b><span>${l}</span></button>`).join("")}</div></div>`).join("")}
    <div class="card"><h3>Report line</h3><p class="report" id="prRep"></p><div style="display:flex;gap:8px"><button class="btn" id="prCopy">Copy</button><button class="btn" id="prSave">Save to Recent</button></div></div>`;
-  const upd=()=>{store.set("pr_"+p.id,[...s]);$("advBody").querySelectorAll(".opt").forEach(b=>b.setAttribute("aria-pressed",s.has(b.dataset.k)));
+  const upd=()=>{$("advBody").querySelectorAll(".opt").forEach(b=>b.setAttribute("aria-pressed",s.has(b.dataset.k)));
     const[t,sev]=p.interp(s);$("prLbl").innerHTML=`<span class="${sev==="crit"?"":""}">${t}</span>`;$("prRep").textContent=s.size?protoLine(p,s):"Tap items to build the line.";};
   $("advBody").onclick=e=>{const b=e.target.closest(".opt");if(b){s.has(b.dataset.k)?s.delete(b.dataset.k):s.add(b.dataset.k);upd()}
     if(e.target.id==="prReset"){s.clear();upd()}if(e.target.id==="prCopy")copyText($("prRep"),e.target);if(e.target.id==="prSave"&&s.size)saveRecent($("prRep").textContent,e.target)};
@@ -777,12 +831,12 @@ function renderAdv(){
   {const p=PROTO.find(x=>x.id===advId);if(p)return renderProto(p);}
   const sc=SCALES.find(x=>x.id===advId)||SCALES[0];
   document.querySelectorAll("#advPick .chip").forEach(b=>b.setAttribute("aria-pressed",b.dataset.id===sc.id));
-  let st=store.get("adv_"+sc.id,null); if(!st||st.length!==sc.items.length)st=Array(sc.items.length).fill(null);
+  const st=advMem[sc.id]||(advMem[sc.id]=Array(sc.items.length).fill(null));
   $("advBody").innerHTML=`<h3>${sc.full}</h3><p class="note">${sc.use}</p>${HOW[sc.id]?`<details class="how" open><summary>How to score</summary><ul>${HOW[sc.id]}</ul></details>`:""}
    <div class="total"><div class="n" id="aTot">–</div><div class="lbl" id="aLbl" style="flex:1"></div><button id="aReset">Reset</button></div>
    <div id="aList" style="display:flex;flex-direction:column;gap:10px"></div>
    <div class="card"><h3>Report line</h3><p class="report" id="aRep"></p><div style="display:flex;gap:8px"><button class="btn" id="aCopy">Copy</button><button class="btn" id="aSave">Save to Recent</button></div></div>`;
-  const upd=()=>{store.set("adv_"+sc.id,st);const t=sumOf(sc.items,st),done=st.filter(v=>v!=null).length,[txt,sev]=sc.interp(st,t,sc.items);
+  const upd=()=>{const t=sumOf(sc.items,st),done=st.filter(v=>v!=null).length,[txt,sev]=sc.interp(st,t,sc.items);
     const name=sc.title?sc.title(st):sc.n;
     $("aTot").textContent=sc.rule?(done?(sev==="ok"?"Neg":sev?"Pos":"…"):"–"):(done?fmt(t,1):"–");
     $("aLbl").innerHTML=`<span>${done?txt:"Not scored"}</span><br><small>${done} of ${sc.items.length} answered</small>`;
@@ -797,7 +851,7 @@ renderAdv();
 
 /* ---------- Burns ---------- */
 const AREAS=[["Head & neck",9],["Chest",9],["Abdomen",9],["Upper back",9],["Lower back & buttocks",9],["Left arm",9],["Right arm",9],["Left leg, front",9],["Left leg, back",9],["Right leg, front",9],["Right leg, back",9],["Perineum",1]];
-let bSel=store.get("burns",[]),palms=store.get("palms",0);
+let bSel=[],palms=0;
 $("bChips").innerHTML=AREAS.map((a,i)=>`<button class="chip" data-i="${i}" aria-pressed="false">${a[0]} · ${a[1]}%</button>`).join("");
 $("bChips").addEventListener("click",e=>{const b=e.target.closest(".chip");if(!b)return;const i=+b.dataset.i;
   bSel=bSel.includes(i)?bSel.filter(x=>x!==i):[...bSel,i];renderBurns();});
@@ -807,7 +861,6 @@ function renderBurns(){
   document.querySelectorAll("#bChips .chip").forEach(b=>b.setAttribute("aria-pressed",bSel.includes(+b.dataset.i)));
   const t=Math.min(100,bSel.reduce((a,i)=>a+AREAS[i][1],0)+palms);
   $("bTot").textContent=t+"%";$("pCount").textContent=palms;
-  store.set("burns",bSel);store.set("palms",palms);
   if(!kg){$("park").innerHTML=`<dt>Needs</dt><dd>patient weight</dd>`;return}
   const tot=4*kg*t;
   $("park").innerHTML=`<dt>24 h total</dt><dd class="big">${fmt(tot,0)} mL</dd><dt>First 8 h</dt><dd>${fmt(tot/2,0)} mL</dd><dt>Rate, first 8 h</dt><dd>${fmt(tot/16,0)} mL/h</dd>`;
@@ -1003,8 +1056,8 @@ const DIRS=[
  {id:"nausea",n:"Nausea / vomiting",s:"pcp",d:["Ondansetron","Dimenhydrinate"]},
  {id:"childbirth",n:"Childbirth",s:"pcp",d:["Oxytocin"]},
  {id:"rosc",n:"ROSC",s:"pcp",d:["0.9% NaCl bolus"],acp:["Dopamine"]},
- {id:"ivfluid",n:"IV / fluid therapy",s:"pcp",d:["0.9% NaCl bolus"]},
- {id:"hemorrhage",n:"Traumatic hemorrhage (AUX)",s:"pcp",d:["Tranexamic acid (AUX)"]},
+ {id:"ivfluid",n:"IV / fluid therapy",s:"pcp",d:["0.9% NaCl bolus"],aux:"ivfluid",auxPcpOnly:1},
+ {id:"hemorrhage",n:"Traumatic hemorrhage (AUX)",s:"pcp",d:["Tranexamic acid (AUX)"],aux:"hemorrhage"},
  {id:"arrest",n:"Medical cardiac arrest",s:"acp",d:["Epinephrine","Amiodarone","Lidocaine","0.9% NaCl bolus"]},
  {id:"tachy",n:"Tachydysrhythmia",s:"acp",d:["Adenosine","Amiodarone","Lidocaine"]},
  {id:"brady",n:"Symptomatic bradycardia",s:"acp",d:["Atropine","Dopamine"]},
@@ -1012,7 +1065,7 @@ const DIRS=[
  {id:"hyperk",n:"Hyperkalemia",s:"acp",d:["Calcium gluconate","Salbutamol"]},
  {id:"seizure",n:"Seizure",s:"acp",d:["Midazolam"]},
  {id:"combative",n:"Combative patient",s:"acp",d:["Midazolam","Ketamine"]},
- {id:"sedation",n:"Procedural sedation (AUX)",s:"acp",d:["Fentanyl","Midazolam"]},
+ {id:"sedation",n:"Procedural sedation (AUX)",s:"acp",d:["Fentanyl","Midazolam"],aux:"sedation"},
  {id:"intub",n:"Intubation (lidocaine spray)",s:"acp",d:["Lidocaine"]},
 ];
 const drugsFor=D=>scope==="acp"?[...D.d,...(D.acp||[])]:D.d;
@@ -1028,7 +1081,7 @@ let ckDir=null;const ck={cls:new Map(),cond:new Set()};let picked=new Set();
 function addCls(c,name){if(!ck.cls.has(c))ck.cls.set(c,new Set());ck.cls.get(c).add(name)}
 function rebuild(){ck.cls.clear();picked.forEach(n=>{if(n.startsWith("["))addCls(Object.keys(CLS).find(k=>"["+CLS[k]+"]"===n),n);else (DRUGS[n]||[]).forEach(c=>addCls(c,n))});check()}
 function renderDirs(){
-  const list=DIRS.filter(D=>scope==="acp"||D.s==="pcp");
+  const list=DIRS.filter(D=>(scope==="acp"||D.s==="pcp")&&!(D.aux&&!auxOn(D.aux)&&!(D.auxPcpOnly&&scope==="acp")));
   if(ckDir&&!list.find(D=>D.id===ckDir))ckDir=null;
   $("kDirs").innerHTML=list.map(D=>`<button class="chip" data-d="${D.id}" aria-pressed="${D.id===ckDir}">${D.n}</button>`).join("");
   const D=DIRS.find(D=>D.id===ckDir);$("kInputs").hidden=!D;$("ckOut").hidden=!D;$("ckBar").hidden=!D;
@@ -1086,6 +1139,27 @@ function check(){
    (quiet.length?`<div class="card"><h3>Home meds with no flags here</h3><p class="note" style="margin:0">${quiet.join(" · ")}: not relevant to any drug in ${D.n}.</p></div>`:"");
 }
 
+/* ---------- New patient: clear everything patient-specific ---------- */
+const TOOL_IDS=["tLb","tKg","tF","tC","hFt","hIn","vS","vD","vH","dV","dT","aAge"];
+function resetPatient(){
+  kg=null;kgAt=null;showWeight();
+  nState.fill(null);nPaint();nUpdate();
+  Object.keys(advMem).forEach(k=>delete advMem[k]);Object.keys(prMem).forEach(k=>delete prMem[k]);renderAdv();
+  bSel=[];palms=0;
+  [...DOSE_IDS,...INF_IDS].forEach(id=>{const e=$(id);if(e.tagName==="SELECT")e.selectedIndex=0;else e.value=""});
+  TOOL_IDS.forEach(id=>$(id).value="");$("hOut").textContent="—";vitals();drip();age();
+  picked.clear();ck.cond.clear();ckDir=null;["kS","kH","kA","kQ"].forEach(i=>$(i).value="");$("kRes").innerHTML="";ck.cls.clear();renderDirs();
+  renderMeds();renderBurns();window.scrollTo(0,0);
+}
+$("newPt").onclick=()=>{const b=$("newPt");
+  if(b.classList.contains("armed")){clearTimeout(b._t);b.classList.remove("armed");b.textContent="Cleared";resetPatient();b._t=setTimeout(()=>b.textContent="New patient",1500);return}
+  b.classList.add("armed");b.textContent="Tap again to clear";b._t=setTimeout(()=>{b.classList.remove("armed");b.textContent="New patient"},3000)};
+/* If the app sat in the background for 4 h or more, start clean (a new shift or call is likely). */
+const STALE_MS=4*60*60*1000;let hiddenAt=null;
+document.addEventListener("visibilitychange",()=>{
+  if(document.visibilityState==="hidden"){hiddenAt=Date.now();return}
+  if(hiddenAt&&Date.now()-hiddenAt>=STALE_MS)resetPatient();hiddenAt=null});
+
 /* ---------- tabs ---------- */
 function go(v){document.querySelectorAll("section.view").forEach(s=>s.hidden=s.id!=="v-"+v);
   document.querySelectorAll("nav.tabs button").forEach(b=>b.setAttribute("aria-selected",b.dataset.v===v));
@@ -1093,10 +1167,22 @@ function go(v){document.querySelectorAll("section.view").forEach(s=>s.hidden=s.i
 document.querySelector("nav.tabs").addEventListener("click",e=>{const b=e.target.closest("button");if(b)go(b.dataset.v)});
 function hdr(){document.documentElement.style.setProperty("--hdr",$("hdr").offsetHeight+8+"px")}
 addEventListener("resize",hdr);
-showWeight();setBasis(perKg);setScope(scope);renderDirs();renderBurns();hdr();go(["meds","dose","nihss","adv","check","tools"].includes(store.get("tab"))?store.get("tab"):"meds");
+renderSettings();showWeight();setBasis(perKg);setScope(scope);renderDirs();renderBurns();hdr();go(["meds","dose","nihss","adv","check","tools"].includes(store.get("tab"))?store.get("tab"):"meds");
 </script>
 <script>
-if("serviceWorker" in navigator){addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));}
+/* Offline + updates. The app always opens from the saved copy (instant, no signal needed).
+   When a new version is published, a banner offers a reload; nothing reloads on its own mid-call. */
+if("serviceWorker" in navigator){
+  const bar=document.getElementById("updBar");
+  const hadController=!!navigator.serviceWorker.controller; // false on the very first install
+  navigator.serviceWorker.addEventListener("controllerchange",()=>{if(hadController){bar.hidden=false;hdr()}});
+  bar.onclick=()=>location.reload();
+  addEventListener("load",()=>{
+    navigator.serviceWorker.register("sw.js").then(reg=>{
+      document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")reg.update().catch(()=>{})});
+    }).catch(()=>{});
+  });
+}
 </script>
 </body>
 </html>
