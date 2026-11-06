@@ -43,14 +43,16 @@ body{color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.4;-we
 body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--surface)}
 .wrap{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
 header.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--surface);border-bottom:1px solid var(--line)}
-header.bar .wrap{padding-block:10px;display:flex;flex-direction:column;gap:8px}
+header.bar .wrap{padding-block:8px;display:flex;flex-direction:column;gap:6px}
 .brand{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
 .brand h1{font-family:var(--display);font-size:20px;letter-spacing:.02em;margin:0;text-transform:uppercase}
 .brand h1 span{color:var(--accent)}
 .brand small{color:var(--muted);font-size:12px}
 .wt{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .wt label{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:600}
-.wt input{width:96px}
+.wt input{width:76px}
+.wt{gap:6px}
+.brand h1{font-size:18px}
 .wt .alt{font-family:var(--mono);font-size:14px;color:var(--muted)}
 textarea{font:500 16px var(--body);padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--surface-2);color:var(--ink);width:100%;resize:vertical}
 input[type=number],select{font:500 18px var(--mono);padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--surface-2);color:var(--ink);min-width:0}
@@ -114,9 +116,14 @@ input[type=search]{font:500 16px var(--body);padding:9px 10px;border:1px solid v
 .ovr{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:2px 12px}
 .ovr dt{font-size:14px;color:var(--muted);min-width:0;overflow-wrap:anywhere}
 .ovr dd{margin:0 0 0 auto;font:600 16px var(--mono);color:var(--accent);text-align:right;font-variant-numeric:tabular-nums}
-.hbtns{display:flex;gap:8px;align-items:center}
+.hbtns{display:flex;gap:6px;align-items:center}
+.gstrip{display:flex;justify-content:space-between;align-items:center;gap:8px;border-top:1px dashed var(--line);padding-top:8px}
+.gtxt{font-size:13px;font-weight:600}
+.gform{display:flex;flex-direction:column;gap:8px;background:var(--surface-2);border-radius:8px;padding:10px}
 .gear{display:inline-flex;align-items:center;justify-content:center;width:34px;height:32px;padding:0;border-radius:8px;border:1px solid var(--line);background:var(--surface-2);color:var(--muted)}
 .gear[aria-pressed=true]{color:var(--accent);border-color:var(--accent)}
+.sres{display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;font:500 15px var(--body);padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink);width:100%}
+.sres small{color:var(--muted);font-size:12px}
 /* Section headings inside a tab, with a jump-chip row at the top */
 h2.sec{font-size:18px;margin-top:6px;padding-top:6px;border-top:1px solid var(--line);scroll-margin-top:calc(env(safe-area-inset-top,0px) + var(--hdr,112px) + 8px)}
 .grp-note{width:100%;margin:6px 0 0;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;font-weight:600}
@@ -141,6 +148,7 @@ h2.sec{font-size:18px;margin-top:6px;padding-top:6px;border-top:1px solid var(--
 nav.tabs{position:fixed;left:0;right:0;bottom:0;z-index:6;background:var(--surface);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px);padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px);display:grid;grid-template-columns:repeat(6,1fr)}
 nav.tabs button{font:600 12px var(--body);letter-spacing:.03em;text-transform:uppercase;padding:14px 2px 12px;border:0;background:transparent;color:var(--muted);border-top:3px solid transparent}
 nav.tabs button[aria-selected=true]{color:var(--accent);border-top-color:var(--accent)}
+table.vt{border-collapse:collapse;width:100%;font:500 14px var(--mono)}table.vt th,table.vt td{border-bottom:1px solid var(--line);padding:5px 6px;text-align:left}table.vt th{font:600 12px var(--body);color:var(--muted);text-transform:uppercase}table.vt tr.hit td{background:var(--accent-soft);font-weight:700}
 .sev-ok{color:var(--ok)}.sev-cond{color:var(--cond)}.sev-warn{color:var(--warn)}.sev-crit{color:var(--crit)}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
@@ -150,15 +158,17 @@ nav.tabs button[aria-selected=true]{color:var(--accent);border-top-color:var(--a
 <header class="bar" id="hdr">
   <div class="wrap">
     <button class="upd" id="updBar" hidden>Update ready · tap to reload (clears current entries)</button>
-    <div class="brand"><h1>Medic <span>Pocket</span> Calc</h1><div class="hbtns"><button class="newpt" id="newPt">New patient</button><button class="gear" id="gear" aria-label="Settings"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M19.4 13a7.6 7.6 0 0 0 0-2l2.1-1.6-2-3.5-2.5 1a7.4 7.4 0 0 0-1.7-1L15 3.3h-4l-.4 2.6a7.4 7.4 0 0 0-1.7 1l-2.5-1-2 3.5L6.6 11a7.6 7.6 0 0 0 0 2l-2.1 1.6 2 3.5 2.5-1a7.4 7.4 0 0 0 1.7 1l.4 2.6h4l.4-2.6a7.4 7.4 0 0 0 1.7-1l2.5 1 2-3.5zM13 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z" transform="translate(-1 0)"/></svg></button></div></div>
+    <div class="brand"><h1>Medic <span>Pocket</span> Calc</h1><div class="hbtns"><button class="newpt" id="newPt">New patient</button><button class="gear" id="srchBtn" aria-label="Search"><svg viewBox="0 0 24 24" width="19" height="19" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" d="M10.5 17a6.5 6.5 0 1 0 0-13 6.5 6.5 0 0 0 0 13zM15.5 15.5 21 21"/></svg></button><button class="gear" id="gear" aria-label="Settings"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M19.4 13a7.6 7.6 0 0 0 0-2l2.1-1.6-2-3.5-2.5 1a7.4 7.4 0 0 0-1.7-1L15 3.3h-4l-.4 2.6a7.4 7.4 0 0 0-1.7 1l-2.5-1-2 3.5L6.6 11a7.6 7.6 0 0 0 0 2l-2.1 1.6 2 3.5 2.5-1a7.4 7.4 0 0 0 1.7 1l.4 2.6h4l.4-2.6a7.4 7.4 0 0 0 1.7-1l2.5 1 2-3.5zM13 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z" transform="translate(-1 0)"/></svg></button></div></div>
     <div class="wt">
       <label for="wIn">Weight</label>
       <input id="wIn" type="number" inputmode="decimal" placeholder="—" min="0" step="0.1">
       <div class="seg" role="group" aria-label="Weight unit">
         <button id="uKg" aria-pressed="true">kg</button><button id="uLb" aria-pressed="false">lb</button>
       </div>
-      <span class="alt" id="wAlt"></span>
+      <label for="ageIn" style="margin-left:2px">Age</label>
+      <input id="ageIn" type="number" inputmode="decimal" placeholder="yrs" min="0" step="any" style="width:62px" aria-label="Age in years">
     </div>
+    <div class="alt" id="wAlt" style="font-size:13px"></div>
     <p class="wwarn" id="wWarn" hidden></p>
   </div>
 </header>
@@ -173,6 +183,7 @@ nav.tabs button[aria-selected=true]{color:var(--accent);border-top-color:var(--a
   </div>
   <p class="note" id="scNote"></p>
   <p class="warnbox">Doses and conditions: <a href="https://www.ontario.ca/files/2025-04/moh-advanced-life-support-als-patient-care-standards-pcs-5.4-en-2025-04-23.pdf" target="_blank" rel="noopener">ALS PCS v5.4</a>. Volumes only where the PCS states a concentration. Your RBHP authorization decides what you can give.<br><span id="auxSum"></span></p>
+  <p class="note" id="medAge" hidden></p>
   <div class="chips jump" id="medJump"></div>
   <div id="medList" style="display:flex;flex-direction:column;gap:10px"></div>
   <p class="note">Need a drug that isn't listed? Use the Dose tab to work from any concentration.</p>
@@ -232,9 +243,56 @@ nav.tabs button[aria-selected=true]{color:var(--accent);border-top-color:var(--a
   </div>
 </section>
 
-<!-- NIHSS -->
-<section class="view" id="v-nihss" hidden>
-  <h2>NIH Stroke Scale</h2>
+
+
+<!-- PATIENT (in memory only; cleared by New patient) -->
+<section class="view" id="v-pt" hidden>
+  <h2>Patient</h2>
+  <p class="note">For this call only. Nothing here is saved, and New patient clears it. No names or identifiers: those go in the ePCR.</p>
+  <div class="chips jump"><button class="chip" data-to="p-vitals">Vitals</button><button class="chip" data-to="p-given">Meds given</button><button class="chip" data-to="p-scores">Scores</button><button class="chip" data-to="p-handoff">Handoff</button></div>
+  <h2 class="sec" id="p-vitals">Vitals</h2>
+  <div class="card">
+    <h3>New vitals set</h3>
+    <div class="grid2">
+      <div class="field"><label for="vsS">SBP</label><input id="vsS" type="number" inputmode="numeric"></div>
+      <div class="field"><label for="vsD">DBP</label><input id="vsD" type="number" inputmode="numeric"></div>
+      <div class="field"><label for="vsH">Heart rate</label><input id="vsH" type="number" inputmode="numeric"></div>
+      <div class="field"><label for="vsR">Resp rate</label><input id="vsR" type="number" inputmode="numeric"></div>
+      <div class="field"><label for="vsO">SpO2 %</label><input id="vsO" type="number" inputmode="numeric"></div>
+      <div class="field"><label for="vsT">Temp °C</label><input id="vsT" type="number" inputmode="decimal" step="any"></div>
+      <div class="field"><label for="vsG">Glucose mmol/L</label><input id="vsG" type="number" inputmode="decimal" step="any"></div>
+      <div class="field"><label>Breathing</label><div class="seg" role="group" aria-label="Air or oxygen"><button id="vsRA" aria-pressed="true">Room air</button><button id="vsO2" aria-pressed="false">O2</button></div></div>
+    </div>
+    <div class="field"><label>Consciousness (ACVPU)</label><div class="seg" role="group" aria-label="Consciousness"><button id="vsA" aria-pressed="true">Alert</button><button id="vsNA" aria-pressed="false">New confusion, V, P or U</button></div></div>
+    <div id="vsFlags"></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" id="vsAdd">Add set with time</button><button class="btn" id="vsClr">Clear fields</button></div>
+    <p class="note" style="margin:0">Each set fills SBP/HR on the Check tab and MAP/shock index on Tools, and can fill NEWS2, qSOFA and other scores (tap "Fill from vitals" on a score).</p>
+  </div>
+  <div id="vsList" style="display:flex;flex-direction:column;gap:8px"></div>
+  <details class="how" id="pedsRef"><summary>Age and vital signs (ALS PCS v5.4)</summary><div id="pedsBody" style="margin-top:8px"></div></details>
+  <h2 class="sec" id="p-given">Meds given</h2>
+  <p class="note">Tap <b>Given</b> on any drug card (Meds tab) to log it here with the time.</p>
+  <div id="givenList" style="display:flex;flex-direction:column;gap:8px"></div>
+  <h2 class="sec" id="p-scores">Scores</h2>
+  <p class="note">Every score you tap <b>Save</b> on is kept here for this patient, with the change since the last one.</p>
+  <div id="ptScores" style="display:flex;flex-direction:column;gap:8px"></div>
+  <h2 class="sec" id="p-handoff">Handoff</h2>
+  <div class="card">
+    <h3>Build the handoff</h3>
+    <div class="chips" id="hoPick"><button class="chip" data-h="who" aria-pressed="true">Age &amp; weight</button><button class="chip" data-h="vit" aria-pressed="true">Vitals</button><button class="chip" data-h="sc" aria-pressed="true">Scores</button><button class="chip" data-h="med" aria-pressed="true">Meds given</button></div>
+    <div class="seg" role="group" aria-label="Vitals detail" style="align-self:flex-start"><button id="hoAll" aria-pressed="true">All vitals sets</button><button id="hoLast" aria-pressed="false">First + latest</button></div>
+    <p class="report" id="hoOut" style="white-space:pre-wrap"></p>
+    <button class="btn" id="hoCopy" style="align-self:flex-start">Copy</button>
+  </div>
+</section>
+
+<!-- ADVANCED -->
+<section class="view" id="v-adv" hidden>
+  <h2>Scores</h2>
+  <p class="note">Pick a protocol or scale. <b>Save</b> keeps the line with the time in Recent and on the Patient tab (for trends and the handoff).</p>
+  <div class="chips" id="advPick"></div>
+  <div id="nihssBox" style="display:flex;flex-direction:column;gap:12px;scroll-margin-top:calc(env(safe-area-inset-top,0px) + var(--hdr,112px) + 8px)" hidden>
+  <h3>NIH Stroke Scale</h3>
   <details class="how" open><summary>How to administer</summary><ul>
    <li>Go in order and score the first attempt. Don't coach or repeat.</li>
    <li><b>1b:</b> ask the month and their age. Only exact answers count.</li>
@@ -250,15 +308,10 @@ nav.tabs button[aria-selected=true]{color:var(--accent);border-top-color:var(--a
   </ul></details>
   <div class="total"><div><div class="n" id="nTot">0</div></div><div class="lbl" id="nLbl" style="flex:1">0 of 15 items scored</div><button id="nReset">Reset</button></div>
   <div id="nList" style="display:flex;flex-direction:column;gap:10px"></div>
-  <div class="card"><h3>Report line</h3><p class="report" id="nRep"></p><div style="display:flex;gap:8px"><button class="btn" id="nCopy">Copy</button><button class="btn" id="nSave">Save to Recent</button></div></div>
+  <div class="card"><h3>Report line</h3><p class="report" id="nRep"></p><div style="display:flex;gap:8px"><button class="btn" id="nCopy">Copy</button><button class="btn" id="nSave">Save</button></div></div>
   <p class="note">Score what you see on the first attempt; don't coach. Limbs: 10 s arms (90° sitting / 45° supine), 5 s legs at 30°. UN (untestable, e.g. amputation) scores 0 here.</p>
-</section>
-
-<!-- ADVANCED -->
-<section class="view" id="v-adv" hidden>
-  <h2>Scores</h2>
-  <p class="note">Pick a protocol or scale, then copy the line or save it to Recent with a timestamp.</p>
-  <div class="chips" id="advPick"></div>
+  <p class="note" id="nTrend"></p>
+  </div>
   <div id="advBody" style="display:flex;flex-direction:column;gap:12px;scroll-margin-top:calc(env(safe-area-inset-top,0px) + var(--hdr,112px) + 8px)"></div>
 </section>
 
@@ -299,9 +352,12 @@ nav.tabs button[aria-selected=true]{color:var(--accent);border-top-color:var(--a
     <dl class="rows" id="dOut"></dl>
   </div>
   <h2 class="sec" id="t-burns">Burns</h2>
-  <p class="note"><b>Rule of nines</b> · Adult chart. Tap each area with partial or full thickness burns. Don't count superficial (red, unblistered) skin.</p>
-  <div class="total"><div class="n" id="bTot">0%</div><div class="lbl" style="flex:1">TBSA</div><button id="bReset">Reset</button></div>
-  <div class="card"><h3>Body areas</h3><div class="chips" id="bChips"></div></div>
+  <div class="seg" role="group" aria-label="Burn chart" style="align-self:flex-start"><button id="bmN" aria-pressed="true">Rule of nines (adult)</button><button id="bmL" aria-pressed="false">Lund-Browder (by age)</button></div>
+  <p class="note" id="bNote">Tap each area with partial or full thickness burns. Don't count superficial (red, unblistered) skin.</p>
+  <div class="total"><div class="n" id="bTot">0%</div><div class="lbl" id="bLbl" style="flex:1">TBSA</div><button id="bReset">Reset</button></div>
+  <div class="card" id="bNines"><h3>Body areas</h3><div class="chips" id="bChips"></div></div>
+  <div class="card" id="bLund" hidden><h3>Front</h3><div class="chips" id="lbF"></div><h3>Back</h3><div class="chips" id="lbB"></div>
+    <p class="note" style="margin:0">General reference (Lund &amp; Browder chart), not an Ontario standard. Head, thigh and lower-leg values change with age; the rest are fixed. Each chip is one surface (front or back).</p></div>
   <div class="card">
     <h3>Patient-palm method (1% each)</h3>
     <div style="display:flex;gap:10px;align-items:center">
@@ -337,6 +393,13 @@ nav.tabs button[aria-selected=true]{color:var(--accent);border-top-color:var(--a
   </div>
 </section>
 
+<!-- SEARCH (opened from the magnifier in the header) -->
+<section class="view" id="v-search" hidden>
+  <div style="display:flex;justify-content:space-between;align-items:center;gap:10px"><h2>Search</h2><button class="btn sm" id="srchBack">Done</button></div>
+  <input type="search" id="srchQ" placeholder="Drug, score, directive, tool, home med…" autocomplete="off" autocorrect="off" autocapitalize="off">
+  <div id="srchRes" style="display:flex;flex-direction:column;gap:6px"></div>
+</section>
+
 <!-- SETTINGS (opened from the gear in the header; not a tab) -->
 <section class="view" id="v-settings" hidden>
   <div style="display:flex;justify-content:space-between;align-items:center;gap:10px"><h2>Settings</h2><button class="btn sm" id="setBack">Done</button></div>
@@ -346,6 +409,7 @@ nav.tabs button[aria-selected=true]{color:var(--accent);border-top-color:var(--a
     <p class="note" style="margin:0">Switch on only the auxiliary (AUX) directives your base hospital has authorized you for. Switched-off directives are hidden from the Meds and Check tabs. Each base hospital keeps its own choices. This app has no base-hospital-specific content: doses still come from the ALS PCS.</p>
     <div class="opts" id="auxList"></div>
   </div>
+  <div class="card" id="appear"><h3>Appearance</h3><div class="seg" role="group" aria-label="Theme" style="align-self:flex-start"><button data-th="auto">Auto</button><button data-th="light">Light</button><button data-th="dark">Dark</button></div><p class="note" style="margin:0">Auto follows the phone's light or dark mode.</p></div>
   <div class="card" id="refs">
     <h3>References</h3>
     <ul style="margin:0;padding-left:18px;display:flex;flex-direction:column;gap:6px">
@@ -396,7 +460,7 @@ nav.tabs button[aria-selected=true]{color:var(--accent);border-top-color:var(--a
 <nav class="tabs" role="tablist">
   <button role="tab" data-v="meds" aria-selected="true">Meds</button>
   <button role="tab" data-v="dose" aria-selected="false">Dose</button>
-  <button role="tab" data-v="nihss" aria-selected="false">NIHSS</button>
+  <button role="tab" data-v="pt" aria-selected="false">Patient</button>
   <button role="tab" data-v="adv" aria-selected="false">Scores</button>
   <button role="tab" data-v="check" aria-selected="false">Check</button>
   <button role="tab" data-v="tools" aria-selected="false">Tools</button>
@@ -430,6 +494,60 @@ function showWeight(){
 function setKg(v){kg=v>0?v:null;kgAt=kg?Date.now():null;showWeight();renderMeds();renderBurns();}
 $("wIn").addEventListener("input",e=>{const v=parseFloat(e.target.value);kg=v>0?(unit==="kg"?v:v/LB):null;kgAt=kg?Date.now():null;
   wInfo();renderMeds();renderBurns();});
+
+/* ---------- patient (memory only) ---------- */
+let ptAge=null;
+const pt={sets:[],given:[],scores:[]};
+const lastSet=()=>pt.sets.length?pt.sets[pt.sets.length-1]:null;
+const fmtAge=a=>a==null?"":a<1?fmt(a*12,0)+" mo":fmt(a,1)+" y";
+function setAge(v,from){ptAge=v>=0&&isFinite(v)?v:null;
+  if(from!=="hdr")$("ageIn").value=ptAge==null?"":ptAge;
+  if(from!=="check"&&$("kA"))$("kA").value=ptAge==null?"":ptAge;
+  if(from!=="tools"&&$("aAge")&&(ptAge==null||ptAge<=12)){$("aAge").value=ptAge==null?"":ptAge;$("aUnit").value="y";if(typeof age==="function")age()}
+  renderMeds();if(typeof check==="function")check();if(typeof renderBurns==="function")renderBurns();renderPedsRef();renderVsFlags();renderHandoff();}
+$("ageIn").addEventListener("input",e=>setAge(parseFloat(e.target.value),"hdr"));
+
+/* ALS PCS v5.4, Preamble "Age and Vital Signs" (pp. 15-16). The PCS gives no rows for 3-5 yr or 11-17 yr. */
+const PCS_PEDS=[{lo:0,hi:.25,l:"0–3 months",rr:[30,60],hr:[90,180]},{lo:.25,hi:.5,l:"3–6 months",rr:[30,60],hr:[80,160]},{lo:.5,hi:1,l:"6–12 months",rr:[25,45],hr:[80,140]},
+ {lo:1,hi:4,l:"1–3 yr",rr:[20,30],hr:[75,130]},{lo:6,hi:7,l:"6 yr",rr:[16,24],hr:[70,110]},{lo:10,hi:11,l:"10 yr",rr:[14,20],hr:[60,90]}];
+const pedsRow=a=>PCS_PEDS.find(r=>a>=r.lo&&a<r.hi)||null;
+function vsFlags(v,a){const f=[],adult=a==null||a>=18;
+  if(v.sbp!=null){if(adult){if(v.sbp<90)f.push(["crit",`SBP ${v.sbp}: hypotension (< 90)`]);else if(v.sbp<100)f.push(["warn",`SBP ${v.sbp}: not normotensive (< 100)`])}
+    else{const hy=70+2*a,no=90+2*a;if(v.sbp<hy)f.push(["crit",`SBP ${v.sbp}: hypotension for ${fmtAge(a)} (< ${fmt(hy,0)})`]);else if(v.sbp<no)f.push(["warn",`SBP ${v.sbp}: not normotensive for ${fmtAge(a)} (< ${fmt(no,0)})`])}}
+  if(adult){if(v.hr!=null&&v.hr<50)f.push(["warn",`HR ${v.hr}: bradycardia (< 50)`]);if(v.hr!=null&&v.hr>=100)f.push(["warn",`HR ${v.hr}: tachycardia (≥ 100)`]);if(v.rr!=null&&v.rr>=28)f.push(["warn",`RR ${v.rr}: tachypnea (≥ 28)`])}
+  else{const r=pedsRow(a);if(r){if(v.hr!=null&&(v.hr<r.hr[0]||v.hr>r.hr[1]))f.push(["warn",`HR ${v.hr}: outside PCS range for ${r.l} (${r.hr[0]}–${r.hr[1]})`]);
+      if(v.rr!=null&&(v.rr<r.rr[0]||v.rr>r.rr[1]))f.push(["warn",`RR ${v.rr}: outside PCS range for ${r.l} (${r.rr[0]}–${r.rr[1]})`])}
+    else if(v.hr!=null||v.rr!=null)f.push(["",`The PCS table has no HR/RR row for ${fmtAge(a)}`])}
+  return f}
+const flagHtml=f=>f.length?`<ul class="items" style="list-style:none;padding:0;margin:4px 0 0">${f.map(([c,t])=>`<li class="${c?"sev-"+c:"note"}" style="font-size:13px">${t}</li>`).join("")}</ul>`:"";
+function renderPedsRef(){if(!$("pedsBody"))return;const r=ptAge!=null&&ptAge<18?pedsRow(ptAge):null;
+  $("pedsBody").innerHTML=`<p class="note" style="margin:0 0 6px"><b>Adults</b> (18 y and over): normotension SBP ≥ 100; hypotension SBP &lt; 90; bradycardia HR &lt; 50; tachycardia HR ≥ 100; tachypnea RR ≥ 28.</p>
+   <p class="note" style="margin:0 0 6px"><b>Pediatrics</b>: normotension SBP ≥ 90 + (2 × age in years); hypotension SBP &lt; 70 + (2 × age in years)${ptAge!=null&&ptAge<18?` → for ${fmtAge(ptAge)}: ≥ ${fmt(90+2*ptAge,0)} / &lt; ${fmt(70+2*ptAge,0)}`:""}.</p>
+   <table class="vt"><tr><th>Age</th><th>RR</th><th>HR</th></tr>${PCS_PEDS.map(x=>`<tr${x===r?' class="hit"':""}><td>${x.l}</td><td>${x.rr.join("–")}</td><td>${x.hr.join("–")}</td></tr>`).join("")}</table>
+   <p class="note" style="margin:6px 0 0">ALS PCS v5.4, Preamble, Age and Vital Signs (pp. 15–16). The table has no rows for 3–5 or 11–17 years. Directive-specific exceptions apply.</p>`;
+  if(r&&$("pedsRef"))$("pedsRef").open=true}
+
+/* Score trend for this patient */
+function trendText(id){const L=pt.scores.filter(x=>x.id===id);if(!L.length)return"";
+  const vals=L.filter(x=>x.v!=null);
+  return vals.length>1?"This patient: "+vals.map(x=>`${fmt(x.v,1)} (${hm(x.t)})`).join(" → "):`Saved for this patient at ${L.map(x=>hm(x.t)).join(", ")}`}
+function renderPtScores(){if(!$("ptScores"))return;const ids=[...new Set(pt.scores.map(x=>x.id))];
+  $("ptScores").innerHTML=ids.length?ids.map(id=>{const L=pt.scores.filter(x=>x.id===id),last=L[L.length-1];
+    return`<div class="card rec"><time>${hm(last.t)} · ${last.n}</time><p class="report">${last.line.replace(/</g,"&lt;")}</p>${L.length>1?`<p class="note" style="margin:0">${trendText(id)}</p>`:""}</div>`}).join(""):`<div class="empty">No scores saved for this patient yet.</div>`;renderHandoff()}
+
+/* Fill score items from the latest vitals set + age. Returns {itemIndex: optionIndex}. */
+const band=(x,cuts)=>{for(let i=0;i<cuts.length;i++)if(x<=cuts[i])return i;return cuts.length};
+const FILL={
+ news2:(v)=>{const o={};if(v.rr!=null)o[0]=band(v.rr,[8,11,20,24]);if(v.spo2!=null)o[1]=band(v.spo2,[91,93,95]);if(v.o2!=null)o[2]=v.o2?1:0;
+   if(v.sbp!=null)o[3]=band(v.sbp,[90,100,110,219]);if(v.hr!=null)o[4]=band(v.hr,[40,50,90,110,130]);if(v.alert!=null)o[5]=v.alert?0:1;if(v.temp!=null)o[6]=band(v.temp,[35,36,38,39]);return o},
+ qsofa:(v)=>{const o={};if(v.rr!=null)o[0]=v.rr>=22?1:0;if(v.alert!=null)o[1]=v.alert?0:1;if(v.sbp!=null)o[2]=v.sbp<=100?1:0;return o},
+ crb65:(v,a)=>{const o={};if(v.alert!=null)o[0]=v.alert?0:1;if(v.rr!=null)o[1]=v.rr>=30?1:0;if(v.sbp!=null&&v.dbp!=null)o[2]=(v.sbp<90||v.dbp<=60)?1:0;if(a!=null)o[3]=a>=65?1:0;return o},
+ perc:(v,a)=>{const o={};if(a!=null)o[0]=a>=50?1:0;if(v.hr!=null)o[1]=v.hr>=100?1:0;if(v.spo2!=null&&v.o2===false)o[2]=v.spo2<95?1:0;return o},
+ wells:(v)=>{const o={};if(v.hr!=null)o[2]=v.hr>100?1:0;return o},
+ heart:(v,a)=>{const o={};if(a!=null)o[2]=a<45?0:a<65?1:2;return o},
+ cthead:(v,a)=>{const o={};if(a!=null)o[4]=a>=65?1:0;return o},
+ cspine:(v,a)=>{const o={};if(a!=null)o[0]=a>=65?1:0;return o},
+};
 $("uKg").onclick=()=>{unit="kg";store.set("unit",unit);showWeight()};
 $("uLb").onclick=()=>{unit="lb";store.set("unit",unit);showWeight()};
 
@@ -564,7 +682,7 @@ $("bhSel").onchange=e=>{bh=e.target.value;store.set("bh",bh);auxOff=new Set(stor
 $("auxList").onclick=e=>{const b=e.target.closest("[data-aux]");if(!b)return;const id=b.dataset.aux;auxOff.has(id)?auxOff.delete(id):auxOff.add(id);auxChanged()};
 $("auxSum").onclick=e=>{if(e.target.id==="auxGo"){e.preventDefault();go("settings")}};
 
-function medCard(m,body,ov){return`<div class="card"><div class="med-head"><h3>${m.n}</h3><span class="route">${m.r}</span></div>${ov}${body}</div>`}
+function medCard(m,body,ov){return`<div class="card" id="${slug(m.n)}" style="scroll-margin-top:calc(env(safe-area-inset-top,0px) + var(--hdr,112px) + 8px)"><div class="med-head"><h3>${m.n}</h3><span class="route">${m.r}</span></div>${ov}${body}${givenStrip(m)}</div>`}
 const ovl=rows=>`<dl class="ov">${rows.map(([a,b])=>`<div class="ovr"><dt>${a}</dt><dd>${b}</dd></div>`).join("")}</dl>`;
 /* Topic groups (organisation only; no clinical content). Same groups are used on the Check tab. */
 const GROUPS=[["arrest","Arrest, rhythm & shock"],["chest","Chest pain & CPE"],["resp","Breathing & allergy"],["metab","Glucose, adrenal & potassium"],
@@ -577,14 +695,36 @@ const MEDGRP={"Defibrillation":"arrest","Epinephrine (arrest)":"arrest","Amiodar
  "Acetaminophen":"pain","Ibuprofen":"pain","Ketorolac":"pain","Fentanyl":"pain","Morphine":"pain","Ketamine":"pain","Ondansetron":"pain","Dimenhydrinate":"pain","Midazolam":"pain",
  "0.9% NaCl bolus":"fluid","0.9% NaCl (ACP)":"fluid","Tranexamic acid":"fluid",
  "Oxytocin":"ob","Epinephrine (newborn)":"ob","Lidocaine spray":"airway"};
+/* Age-aware overview for drugs whose overview line shows adult and pediatric doses together.
+   Values are the same expressions as each card's "Full details" rows. */
+const OVA={
+ "Epinephrine (arrest)":(w,a)=>[["Cardiac arrest",a<12?"IV/IO "+fmt(r05(Math.max(.01*w,.05)))+" mg":"IV/IO 1 mg"]],
+ "Amiodarone (arrest)":(w,a)=>[["Cardiac arrest","IV/IO "+(a<12?fmt(cap(5*w,300),0):"300")+" mg"]],
+ "Lidocaine (arrest)":(w,a)=>[["Cardiac arrest","IV/IO "+fmt(a<12?w:1.5*w,0)+" mg"]],
+ "Fentanyl":(w,a)=>[["Analgesia",a<18?"IV/IN up to "+fmt(cap(w,75),0)+" mcg":"IV/IN 25–75 mcg"],["Procedural sedation (AUX)","IV/IN 25–75 mcg"]],
+ "Morphine":(w,a)=>[["Analgesia",a<18?"IV/SC "+rng(cap(.05*w,5),cap(.1*w,5),"mg"):"IV/SC 2–10 mg"],["Cardiac ischemia","IV 2 mg"]],
+ "Ketamine":(w,a)=>[["Analgesia",a<18?"IV "+fmt(cap(.25*w,10),1)+" mg · IN "+fmt(cap(w,30),0)+" mg (patch)":"IV "+fmt(cap(.25*w,20),1)+" mg · IN "+fmt(cap(w,75),0)+" mg"],
+   ["Combative",a<18?"≥ 18 y only":"IM "+(a>=65?fmt(cap(3*w,300),0):fmt(cap(5*w,500),0))+" mg"]],
+ "Acetaminophen":(w,a)=>[["Analgesia",a>=18?"PO 960–1,000 mg":a>=12?"PO 500–650 mg":"≥ 12 y only"]],
+ "Defibrillation":(w,a)=>[["Cardiac arrest",a<8?fmt(2*w,0)+" J, then "+fmt(4*w,0)+" J":"Per RBHP / manufacturer"]],
+};
+/* Hide "Full details" rows whose label names an age band that excludes this patient. */
+function ageOk(label,a){let m;
+  if((m=label.match(/(\d+)\s*–\s*(\d+)\s*y/)))return a>=+m[1]&&a<+m[2]+1;
+  if((m=label.match(/≥\s*(\d+)\s*y/)))return a>=+m[1];
+  if((m=label.match(/<\s*(\d+)\s*y/)))return a<+m[1];
+  return true}
+const ageRows=rows=>ptAge==null?rows:rows.filter(([a])=>ageOk(a,ptAge));
 function renderMeds(){
   const list=(scope==="acp"?[...ACP,...PCP.filter(p=>!["Hydrocortisone"].includes(p.n))]:PCP).filter(m=>!m.aux||auxOn(m.aux));
   const card=m=>{
     if(m.w&&!kg)return medCard(m,`<div class="empty">${NW}</div>`,ovl(auxRows(OV[m.n]?OV[m.n](70):[]).map(([a])=>[a,"—"])));
-    const o=m.f(kg),ov=OV[m.n]?ovl(auxRows(OV[m.n](kg))):"";
-    const full=typeof o==="string"?`<div class="empty">${o}</div>`:`<details class="more"><summary>Full details</summary>${dl(auxRows(o))}</details>`;
+    const ovr=ptAge!=null&&OVA[m.n]?OVA[m.n](kg,ptAge):OV[m.n]?OV[m.n](kg):null;
+    const o=m.f(kg),ov=ovr?ovl(auxRows(ovr)):"";
+    const full=typeof o==="string"?`<div class="empty">${o}</div>`:`<details class="more"><summary>Full details${ptAge!=null?" · for "+fmtAge(ptAge):""}</summary>${dl(ageRows(auxRows(o)))}</details>`;
     return medCard(m,full,ov)};
   const used=GROUPS.filter(([g])=>list.some(m=>(MEDGRP[m.n]||"fluid")===g));
+  $("medAge").innerHTML=ptAge==null?"":`Showing doses for <b>age ${fmtAge(ptAge)}</b>. Rows for other age bands are hidden; directive age conditions still apply (see Check).`;$("medAge").hidden=ptAge==null;
   $("medJump").innerHTML=used.map(([g,l])=>`<button class="chip" data-to="m-${g}">${l}</button>`).join("");
   $("medList").innerHTML=used.map(([g,l])=>`<h2 class="sec" id="m-${g}">${l}</h2>`+list.filter(m=>(MEDGRP[m.n]||"fluid")===g).map(card).join("")).join("");
   doseCalc(); infusion();
@@ -683,7 +823,7 @@ function nUpdate(){const done=nState.filter(v=>v!=null).length,t=sumOf(NI,nState
   const pos=NI.map((it,i)=>[keyOf(it),val(NI,nState,i)]).filter(x=>x[1]);
   $("nRep").textContent=done?`NIHSS ${t} (${sev.toLowerCase()})${pos.length?": "+pos.map(x=>x[0]+" "+x[1]).join(", "):""}${done<NI.length?` [${NI.length-done} items not scored]`:""}`:"Score items to build the line.";}
 $("nCopy").onclick=()=>copyText($("nRep"),$("nCopy"));
-$("nSave").onclick=()=>{if(nState.some(v=>v!=null))saveRecent($("nRep").textContent,$("nSave"))};
+$("nSave").onclick=()=>{if(nState.some(v=>v!=null))saveRecent($("nRep").textContent,$("nSave"),{id:"nihss",n:"NIHSS",v:sumOf(NI,nState)})};
 const nPaint=scorer($("nList"),NI,nState,nUpdate);nUpdate();
 $("nReset").onclick=()=>{nState.fill(null);nPaint();nUpdate();window.scrollTo(0,0)};
 
@@ -776,8 +916,9 @@ function lineFor(sc,st){
 }
 /* ---------- Recent (scores only, no patient details) ---------- */
 let recent=store.get("recent",[]);
-function saveRecent(line,btn){if(!line||line.startsWith("Score items"))return;recent.unshift({t:Date.now(),l:line});recent=recent.slice(0,40);store.set("recent",recent);
-  if(btn){btn.textContent="Saved";setTimeout(()=>btn.textContent="Save to Recent",1500)}}
+function saveRecent(line,btn,meta){if(!line||line.startsWith("Score items")||line.startsWith("Tap items"))return;const t=Date.now();recent.unshift({t,l:line});recent=recent.slice(0,40);store.set("recent",recent);
+  if(meta){pt.scores.push({t,id:meta.id,n:meta.n,v:meta.v,line});renderPtScores();const tr=$(meta.id==="nihss"?"nTrend":"aTrend");if(tr)tr.textContent=trendText(meta.id)}
+  if(btn){btn.textContent="Saved";setTimeout(()=>btn.textContent="Save",1500)}}
 const stamp=t=>{const d=new Date(t),p=n=>String(n).padStart(2,"0");return`${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`};
 function renderRecent(){
   document.querySelectorAll("#advPick .chip").forEach(b=>b.setAttribute("aria-pressed",b.dataset.id==="recent"));
@@ -826,6 +967,18 @@ const PROTO=[
      return[t?"Step "+(st1?"1":"2")+" met: transport directly to LTH":"Step "+(st1?"1":"2")+" met; LTH ≥ 30 min: follow local PPS / consider air","crit"]}
    if(st3||st4)return[(st3?"Step 3":"Step 4")+" met: determine need for LTH (judgement; may patch BHP)","warn"];
    return["No FTTG criteria selected",""]}},
+ {id:"ctas",n:"CTAS modifiers",full:"Prehospital CTAS: first order modifiers (adult)",src:"Prehospital CTAS Paramedic Guide v2.0, Tables 1–7, pp. 25–34",
+  use:"Tap every modifier that applies; the most acute level wins. This covers the first order modifiers only, not the guide's complaint-specific levels.",
+  g:[["Respiratory distress",[["r1","Severe: SpO2 < 90%, fatigued from work of breathing, cyanosis, single words, upper airway obstruction, lethargic or confused"],["r2","Moderate: SpO2 < 92%, increased work of breathing, phrases only, significant or worsening stridor, airway still protected"],["r3","Mild/moderate: SpO2 92–94%, dyspnea, tachypnea, exertional SOB, full sentences, stridor without obvious obstruction"]]],
+     ["Hemodynamic stability",[["h1","Shock: severe end-organ hypoperfusion (marked pallor, cool skin, weak pulse, hypotension, marked tachy/bradycardia, decreased LOC)"],["h2","Compromise: borderline perfusion (pallor, diaphoresis, unexplained tachycardia, postural symptoms, hypotension for this patient)"],["h3","Borderline vitals: at the upper or lower end of normal for the complaint, especially if unusual for the patient"]]],
+     ["Level of consciousness",[["l1","Unconscious: can't protect airway, responds only to pain or loud noise, continuous seizure, progressive decline (guide: GCS 3–9)"],["l2","Impaired: inappropriate verbal responses, disoriented, new memory impairment, altered behaviour (guide: GCS 10–13)"]]],
+     ["Temperature: fever > 38.5 °C (oral)",[["t1","Immunocompromised: neutropenia, chemotherapy, immunosuppressants incl. steroids"],["t2","Looks septic: infection + 3 SIRS criteria, or hemodynamic compromise, moderate respiratory distress or altered LOC"],["t3","Looks unwell: < 3 SIRS criteria but flushed, lethargic, anxious or agitated"],["t4","Looks well: fever is the only SIRS criterion, comfortable"]]],
+     ["Pain (mild 0–3, moderate 4–7, severe 8–10)",[["p1","Severe central acute"],["p2","Severe central chronic"],["p3","Severe peripheral acute"],["p4","Severe peripheral chronic"],["p5","Moderate central acute"],["p6","Moderate central chronic"],["p7","Moderate peripheral acute"],["p8","Moderate peripheral chronic"],["p9","Mild central acute"],["pa","Mild central chronic"],["pb","Mild peripheral acute or chronic"]]],
+     ["Bleeding disorder (congenital, severe liver failure, anticoagulants)",[["b1","Major bleed: head/neck/intracranial, chest, abdo, pelvis, spine, massive vaginal, iliopsoas/hip, compartment, fracture/dislocation, deep laceration, any uncontrolled bleed"],["b2","Minor bleed: nosebleed, mouth/gum, joint, menorrhagia, abrasion, superficial laceration"]]],
+     ["Mechanism of injury",[["m1","Meets high-risk mechanism (ejection, rollover, extrication ≥ 20 min, intrusion, death in compartment, MVC ≥ 40 km/h unrestrained / ≥ 60 restrained, motorcycle ≥ 30 km/h, fall ≥ 6 m, proximal penetrating, high-risk head/neck mechanism)"]]]],
+  lv:{r1:1,r2:2,r3:3,h1:1,h2:2,h3:3,l1:1,l2:2,t1:2,t2:2,t3:3,t4:4,p1:2,p2:3,p3:3,p4:4,p5:3,p6:4,p7:4,p8:5,p9:4,pa:5,pb:5,b1:2,b2:3,m1:2},
+  level(s){const L=[...s].map(k=>this.lv[k]).filter(Boolean);return L.length?Math.min(...L):null},
+  interp(s){const l=this.level(s);return l==null?["No modifier selected: use the complaint-based level",""]:[`CTAS ${l} from modifiers (complaint may set a higher acuity)`,l<=2?"crit":l===3?"warn":"ok"]}},
  {id:"smr",n:"SMR",full:"Spinal Motion Restriction Standard",src:"BLS PCS v3.4, SMR Prompt Card",
   use:"This standard doesn't clear the spine in blunt trauma. It identifies who doesn't need SMR.",
   g:[["MOI suggestive of spine injury",[["mi","Trauma with neck/back pain, sports, diving/submersion, explosion, fall, pedestrian struck, electrocution, lightning"],["mp","Penetrating trauma to head, neck or torso"]]],
@@ -844,28 +997,30 @@ function renderProto(p){
   $("advBody").innerHTML=`<h3>${p.full}</h3><p class="note">${p.use} <i>${p.src}.</i></p>
    <div class="total"><div class="lbl" id="prLbl" style="flex:1"></div><button id="prReset">Reset</button></div>
    ${p.g.map(([gt,items])=>`<div class="card"><h3>${gt}</h3><div class="opts">${items.map(([k,l])=>`<button class="opt" data-k="${k}" aria-pressed="false"><b>${"✓"}</b><span>${l}</span></button>`).join("")}</div></div>`).join("")}
-   <div class="card"><h3>Report line</h3><p class="report" id="prRep"></p><div style="display:flex;gap:8px"><button class="btn" id="prCopy">Copy</button><button class="btn" id="prSave">Save to Recent</button></div></div>`;
+   <div class="card"><h3>Report line</h3><p class="report" id="prRep"></p><div style="display:flex;gap:8px"><button class="btn" id="prCopy">Copy</button><button class="btn" id="prSave">Save</button></div></div>`;
   const upd=()=>{$("advBody").querySelectorAll(".opt").forEach(b=>b.setAttribute("aria-pressed",s.has(b.dataset.k)));
     const[t,sev]=p.interp(s);$("prLbl").innerHTML=`<span class="${sev==="crit"?"":""}">${t}</span>`;$("prRep").textContent=s.size?protoLine(p,s):"Tap items to build the line.";};
   $("advBody").onclick=e=>{const b=e.target.closest(".opt");if(b){s.has(b.dataset.k)?s.delete(b.dataset.k):s.add(b.dataset.k);upd()}
-    if(e.target.id==="prReset"){s.clear();upd()}if(e.target.id==="prCopy")copyText($("prRep"),e.target);if(e.target.id==="prSave"&&s.size)saveRecent($("prRep").textContent,e.target)};
+    if(e.target.id==="prReset"){s.clear();upd()}if(e.target.id==="prCopy")copyText($("prRep"),e.target);if(e.target.id==="prSave"&&s.size)saveRecent($("prRep").textContent,e.target,{id:p.id,n:p.n,v:p.level?p.level(s):null})};
   upd();
 }
 
 const HOW={"news2": "<li>Measure all seven. Count RR for a full 30–60 s.</li><li>SpO2 uses Scale 1 (this app). Hospitals switch to Scale 2 for patients with a prescribed target of 88–92%, e.g. hypercapnic COPD.</li><li>Any supplemental oxygen scores 2.</li><li>Consciousness is ACVPU: new confusion, or responds only to voice or pain, or unresponsive, scores 3.</li><li>Escalation: total ≥ 5 or any single 3 needs urgent review; ≥ 7 is an emergency.</li>", "qsofa": "<li>Use only when you suspect infection.</li><li>One point each: RR ≥ 22, any altered mentation (GCS &lt; 15), SBP ≤ 100.</li><li>≥ 2 flags higher risk of death or ICU stay. It isn't a sepsis diagnosis, and &lt; 2 doesn't rule sepsis out.</li>", "heart": "<li>For chest pain without STEMI.</li><li><b>History:</b> 0 = non-specific; 1 = mixed features; 2 = mainly typical (pressure, radiation, exertional, relieved by nitro).</li><li><b>ECG:</b> 1 = LBBB, LVH, paced rhythm or repolarization changes; 2 = ST depression or elevation not explained by those.</li><li><b>Risk factors:</b> hypertension, high cholesterol, diabetes, obesity (BMI &gt; 30), smoking (current or quit ≤ 3 months), family history (parent/sibling with CVD before 65). Score 2 for ≥ 3, or any known atherosclerotic disease (prior MI, PCI/CABG, stroke/TIA, PAD).</li><li><b>Troponin:</b> pick \"not available\" prehospital and report it as HEAR.</li>", "wells": "<li>\"PE most likely\" is your judgement that PE is more likely than any alternative diagnosis.</li><li>Immobilization means bed rest ≥ 3 days; surgery means within the last 4 weeks.</li><li>Malignancy means treatment within 6 months or palliative.</li><li>Report both tiers: &gt; 6 high, 2–6 moderate, &lt; 2 low; and PE likely (&gt; 4) or unlikely (≤ 4).</li>", "perc": "<li>Use only when your gestalt says PE risk is already low (under about 15%).</li><li>All eight must be absent to rule PE out.</li><li>Hormone use: oral contraceptives, HRT or other estrogen.</li><li>Recent surgery or trauma: within 4 weeks and needing hospitalization or general anesthesia.</li>", "crb65": "<li>Confusion means new disorientation to person, place or time.</li><li>One point each.</li><li>The hospital adds urea &gt; 7 mmol/L to make CURB-65.</li>", "cpss": "<li><b>Facial droop:</b> ask the patient to smile or show their teeth.</li><li><b>Arm drift:</b> eyes closed, both arms straight out, palms up, for 10 s.</li><li><b>Speech:</b> have them repeat a simple sentence (\"The sky is blue in Toronto\"). Slurred, wrong words or no speech is abnormal.</li><li>Any one abnormal finding is positive.</li>", "lams": "<li><b>Face:</b> ask the patient to smile or show their teeth.</li><li><b>Arm:</b> arms out 10 s (90° sitting, 45° lying). Drifts down = 1; falls rapidly = 2.</li><li><b>Grip:</b> have them squeeze your fingers with both hands and compare. Weak = 1; none = 2.</li><li>Score the weaker side.</li><li>Ontario Acute Stroke Protocol: screen everyone within 24 h of onset. ≥ 4 means CTAS 2 and an LVO Clinical Screen positive report to the receiving hospital.</li>", "cthead": "<li>Applies to GCS 13–15 after head injury with witnessed LOC, definite amnesia or witnessed disorientation.</li><li>Doesn't apply if under 16, on anticoagulants, or after a seizure.</li><li>Dangerous mechanism: pedestrian struck, ejection from a vehicle, or fall &gt; 3 ft or 5 stairs.</li><li>Any high-risk factor predicts need for neurosurgery; a medium-risk factor predicts brain injury on CT.</li>", "cspine": "<li>For alert (GCS 15), stable trauma patients.</li><li><b>Step 1:</b> any high-risk factor means imaging. Dangerous mechanism: fall ≥ 3 ft or 5 stairs, axial load, MVC &gt; 100 km/h, rollover, ejection, motorized recreational vehicle, or bicycle collision.</li><li><b>Step 2:</b> you need at least one low-risk factor before testing range of motion. A rear-end collision isn't \"simple\" if the car was pushed into traffic, hit by a bus or truck, rolled, or hit at high speed.</li><li><b>Step 3:</b> ask the patient to actively turn their head 45° left and right. If they can, no imaging.</li><li>In the field, the BLS PCS SMR Standard (Ontario protocols above) is what you follow.</li>", "fourat": "<li><b>Alertness:</b> observe. If asleep, try to wake with voice or a touch on the shoulder.</li><li><b>AMT4:</b> ask age, date of birth, place (name of hospital or building), and current year.</li><li><b>Attention:</b> \"Tell me the months of the year backwards, starting at December.\" One prompt of \"What's the month before December?\" is allowed.</li><li><b>Acute change:</b> get it from family, a caregiver or notes. Has alertness, cognition or other mental function changed in the last 2 weeks, and is it still fluctuating?</li>", "cfs": "<li>Rate baseline function about 2 weeks before this illness, from the patient or family.</li><li>4 = independent but slowed or limited by symptoms.</li><li>5 = needs help with higher-order activities: finances, transport, heavy housework, medications.</li><li>6 = needs help with all outside activities and housekeeping, stairs and bathing.</li><li>7 = dependent for personal care.</li><li>9 = terminally ill with life expectancy under 6 months, even if not otherwise frail.</li><li>Validated for age 65+; use with care in younger patients or a stable single disability.</li>", "rass": "<li><b>Observe 30 s.</b> Alert and calm is 0. Restless or agitated is +1 to +4.</li><li><b>If not alert,</b> say their name and ask them to open their eyes and look at you. Eye contact over 10 s = −1; under 10 s = −2; movement but no eye contact = −3.</li><li><b>If there's no response to voice,</b> shake the shoulder or rub the sternum. Any movement = −4; none = −5.</li>", "apgar": "<li>Score at 1 and 5 minutes after birth. If under 7 at 5 minutes, repeat every 5 minutes up to 20 minutes.</li><li>Never delay resuscitation to score.</li><li>Each item scores 0–2. Colour: most healthy newborns score 1 at 1 minute.</li>"};
 let advId=store.get("advId","stroke");
 /* Score picker grouped by topic. Ontario prompt cards first, then general hospital/clinical scores. */
-const SCGRP=[["Stroke",["lams","cpss"]],["Deterioration & sepsis",["news2","qsofa"]],["Heart & lungs",["heart","wells","perc","crb65"]],
+const SCGRP=[["Stroke",["nihss","lams","cpss"]],["Deterioration & sepsis",["news2","qsofa"]],["Heart & lungs",["heart","wells","perc","crb65"]],
  ["Head & spine",["cthead","cspine"]],["Mental status & frailty",["fourat","rass","cfs"]],["Newborn",["apgar"]]];
 const chipFor=(id,n)=>`<button class="chip" data-id="${id}" aria-pressed="false">${n}</button>`;
 $("advPick").innerHTML=chipFor("recent","<strong>Recent</strong>")
-  +`<p class="grp-note">Ontario protocols · BLS PCS v3.4</p>`+PROTO.map(p=>chipFor(p.id,p.n)).join("")
+  +`<p class="grp-note">Ontario protocols · BLS PCS v3.4 · Prehospital CTAS</p>`+PROTO.map(p=>chipFor(p.id,p.n)).join("")
   +`<p class="note" style="width:100%;margin:10px 0 0"><b>Hospital and clinical scores</b> · general references, not Ontario standards</p>`
-  +SCGRP.map(([g,ids])=>`<p class="grp-note">${g}</p>`+ids.map(id=>{const sc=SCALES.find(x=>x.id===id);return sc?chipFor(sc.id,sc.n):""}).join("")).join("")
+  +SCGRP.map(([g,ids])=>`<p class="grp-note">${g}</p>`+ids.map(id=>{if(id==="nihss")return chipFor("nihss","NIHSS");const sc=SCALES.find(x=>x.id===id);return sc?chipFor(sc.id,sc.n):""}).join("")).join("")
   +((ids=>SCALES.filter(sc=>!ids.includes(sc.id)))(SCGRP.flatMap(g=>g[1])).map(sc=>chipFor(sc.id,sc.n)).join(""));
-$("advPick").addEventListener("click",e=>{const b=e.target.closest(".chip");if(b){advId=b.dataset.id;store.set("advId",advId);renderAdv();$("advBody").scrollIntoView({behavior:"smooth"})}});
+$("advPick").addEventListener("click",e=>{const b=e.target.closest(".chip");if(b){advId=b.dataset.id;store.set("advId",advId);renderAdv();(advId==="nihss"?$("nihssBox"):$("advBody")).scrollIntoView({behavior:"smooth"})}});
 function renderAdv(){
   $("advBody").onclick=null;
+  const isN=advId==="nihss";$("nihssBox").hidden=!isN;$("advBody").hidden=isN;
+  if(isN){document.querySelectorAll("#advPick .chip").forEach(b=>b.setAttribute("aria-pressed",b.dataset.id==="nihss"));$("nTrend").textContent=trendText("nihss");return}
   if(advId==="recent")return renderRecent();
   {const p=PROTO.find(x=>x.id===advId);if(p)return renderProto(p);}
   const sc=SCALES.find(x=>x.id===advId)||SCALES[0];
@@ -873,8 +1028,9 @@ function renderAdv(){
   const st=advMem[sc.id]||(advMem[sc.id]=Array(sc.items.length).fill(null));
   $("advBody").innerHTML=`<h3>${sc.full}</h3><p class="note">${sc.use}</p>${HOW[sc.id]?`<details class="how" open><summary>How to score</summary><ul>${HOW[sc.id]}</ul></details>`:""}
    <div class="total"><div class="n" id="aTot">–</div><div class="lbl" id="aLbl" style="flex:1"></div><button id="aReset">Reset</button></div>
+   ${FILL[sc.id]?`<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><button class="btn sm" id="aFill">Fill from vitals</button><span class="note" id="aFillNote"></span></div>`:""}
    <div id="aList" style="display:flex;flex-direction:column;gap:10px"></div>
-   <div class="card"><h3>Report line</h3><p class="report" id="aRep"></p><div style="display:flex;gap:8px"><button class="btn" id="aCopy">Copy</button><button class="btn" id="aSave">Save to Recent</button></div></div>`;
+   <div class="card"><h3>Report line</h3><p class="report" id="aRep"></p><div style="display:flex;gap:8px"><button class="btn" id="aCopy">Copy</button><button class="btn" id="aSave">Save</button></div><p class="note" id="aTrend" style="margin:0">${trendText(sc.id)}</p></div>`;
   const upd=()=>{const t=sumOf(sc.items,st),done=st.filter(v=>v!=null).length,[txt,sev]=sc.interp(st,t,sc.items);
     const name=sc.title?sc.title(st):sc.n;
     $("aTot").textContent=sc.rule?(done?(sev==="ok"?"Neg":sev?"Pos":"…"):"–"):(done?fmt(t,1):"–");
@@ -884,7 +1040,10 @@ function renderAdv(){
   const paint=scorer($("aList"),sc.items,st,upd,!!sc.rule);upd();
   $("aReset").onclick=()=>{st.fill(null);paint();upd()};
   $("aCopy").onclick=()=>copyText($("aRep"),$("aCopy"));
-  $("aSave").onclick=()=>saveRecent($("aRep").textContent,$("aSave"));
+  $("aSave").onclick=()=>{if(st.some(v=>v!=null))saveRecent($("aRep").textContent,$("aSave"),{id:sc.id,n:sc.title?sc.title(st):sc.n,v:sc.rule?null:sumOf(sc.items,st)})};
+  if(FILL[sc.id])$("aFill").onclick=()=>{const v=lastSet();if(!v&&ptAge==null){$("aFillNote").textContent="Add a vitals set (Patient tab) or age first.";return}
+    const f=FILL[sc.id](v||{},ptAge),keys=Object.keys(f);keys.forEach(i=>st[+i]=f[i]);paint();upd();
+    $("aFillNote").textContent=keys.length?`Filled ${keys.map(i=>keyOf(sc.items[+i])).join(", ")}${v?" from "+hm(v.t)+" vitals":""}. Check them.`:"Nothing to fill from the vitals entered."};
 }
 renderAdv();
 
@@ -895,11 +1054,26 @@ $("bChips").innerHTML=AREAS.map((a,i)=>`<button class="chip" data-i="${i}" aria-
 $("bChips").addEventListener("click",e=>{const b=e.target.closest(".chip");if(!b)return;const i=+b.dataset.i;
   bSel=bSel.includes(i)?bSel.filter(x=>x!==i):[...bSel,i];renderBurns();});
 $("pPlus").onclick=()=>{palms++;renderBurns()};$("pMinus").onclick=()=>{palms=Math.max(0,palms-1);renderBurns()};
-$("bReset").onclick=()=>{bSel=[];palms=0;renderBurns()};
+$("bReset").onclick=()=>{bSel=[];lbSel.clear();palms=0;renderBurns()};
+/* Lund & Browder: per-surface % (front or back). Age columns: 0, 1, 5, 10, 15 years, adult. */
+const LB_A=[9.5,8.5,6.5,5.5,4.5,3.5],LB_B=[2.75,3.25,4,4.25,4.5,4.75],LB_C=[2.5,2.5,2.75,3,3.25,3.5];
+const lbCol=a=>a==null||a>=18?5:a<1?0:a<5?1:a<10?2:a<15?3:4;
+const LB_COLS=["birth–1 y","1–4 y","5–9 y","10–14 y","15–17 y","adult"];
+const LBR=[["Head","A"],["Neck",1],["Trunk",13],["R upper arm",2],["L upper arm",2],["R forearm",1.5],["L forearm",1.5],["R hand",1.25],["L hand",1.25],["R thigh","B"],["L thigh","B"],["R lower leg","C"],["L lower leg","C"],["R foot",1.75],["L foot",1.75]];
+const LB_FRONT=[...LBR.slice(0,3),["Genitalia",1],...LBR.slice(3)],LB_BACK=[...LBR.slice(0,3),["R buttock",2.5],["L buttock",2.5],...LBR.slice(3)];
+const lbVal=(v,c)=>v==="A"?LB_A[c]:v==="B"?LB_B[c]:v==="C"?LB_C[c]:v;
+let bMode="nines";const lbSel=new Set();
+const lbChips=(side,list,c)=>list.map(([n,v])=>{const k=side+":"+n;return`<button class="chip" data-lb="${k}" aria-pressed="${lbSel.has(k)}">${n} · ${fmt(lbVal(v,c),2)}%</button>`}).join("");
+$("bLund").addEventListener("click",e=>{const b=e.target.closest("[data-lb]");if(!b)return;lbSel.has(b.dataset.lb)?lbSel.delete(b.dataset.lb):lbSel.add(b.dataset.lb);renderBurns()});
+$("bmN").onclick=()=>{bMode="nines";renderBurns()};$("bmL").onclick=()=>{bMode="lund";renderBurns()};
+function lbTotal(c){let t=0;lbSel.forEach(k=>{const[side,n]=k.split(":"),r=(side==="F"?LB_FRONT:LB_BACK).find(x=>x[0]===n);if(r)t+=lbVal(r[1],c)});return t}
 function renderBurns(){
   document.querySelectorAll("#bChips .chip").forEach(b=>b.setAttribute("aria-pressed",bSel.includes(+b.dataset.i)));
-  const t=Math.min(100,bSel.reduce((a,i)=>a+AREAS[i][1],0)+palms);
-  $("bTot").textContent=t+"%";$("pCount").textContent=palms;
+  const L=bMode==="lund",c=lbCol(ptAge);$("bmN").setAttribute("aria-pressed",!L);$("bmL").setAttribute("aria-pressed",L);$("bNines").hidden=L;$("bLund").hidden=!L;
+  if(L){$("lbF").innerHTML=lbChips("F",LB_FRONT,c);$("lbB").innerHTML=lbChips("B",LB_BACK,c)}
+  $("bLbl").innerHTML=L?`TBSA · Lund-Browder, ${LB_COLS[c]} column${ptAge==null?"<br><small>Enter age in the header for a child</small>":""}`:"TBSA · rule of nines (adult)";
+  const t=Math.min(100,(L?lbTotal(c):bSel.reduce((a,i)=>a+AREAS[i][1],0))+palms);
+  $("bTot").textContent=fmt(t,2)+"%";$("pCount").textContent=palms;
   if(!kg){$("park").innerHTML=`<dt>Needs</dt><dd>patient weight</dd>`;return}
   const tot=4*kg*t;
   $("park").innerHTML=`<dt>24 h total</dt><dd class="big">${fmt(tot,0)} mL</dd><dt>First 8 h</dt><dd>${fmt(tot/2,0)} mL</dd><dt>Rate, first 8 h</dt><dd>${fmt(tot/16,0)} mL/h</dd>`;
@@ -1149,7 +1323,8 @@ $("kQ").addEventListener("input",()=>{const q=$("kQ").value.trim().toLowerCase()
   $("kRes").innerHTML=q.length<2?"":Object.keys(DRUGS).filter(n=>n.includes(q)).slice(0,8).map(n=>`<button class="chip" data-n="${n}">+ ${n}</button>`).join("")||`<span class="empty">Not in this app's list. No ALS PCS directive names it as a contraindication, but check interactions yourself.</span>`});
 $("kRes").onclick=e=>{const b=e.target.closest("[data-n]");if(!b)return;picked.add(b.dataset.n);$("kQ").value="";$("kRes").innerHTML="";rebuild()};
 $("kSel").onclick=e=>{const b=e.target.closest("[data-n]");if(!b)return;picked.delete(b.dataset.n);rebuild();renderDirs()};
-["kS","kH","kA"].forEach(id=>$(id).addEventListener("input",check));
+["kS","kH"].forEach(id=>$(id).addEventListener("input",check));
+$("kA").addEventListener("input",()=>setAge(parseFloat($("kA").value),"check"));
 $("kClear").onclick=()=>{picked.clear();ck.cond.clear();["kS","kH","kA","kQ"].forEach(i=>$(i).value="");$("kRes").innerHTML="";rebuild();renderDirs()};
 function check(){
   const D=DIRS.find(D=>D.id===ckDir);if(!D)return;
@@ -1182,17 +1357,144 @@ function check(){
    (quiet.length?`<div class="card"><h3>Home meds with no flags here</h3><p class="note" style="margin:0">${quiet.join(" · ")}: not relevant to any drug in ${D.n}.</p></div>`:"");
 }
 
+/* ---------- Patient tab: vitals sets ---------- */
+const VS_IDS=["vsS","vsD","vsH","vsR","vsO","vsT","vsG"];let vsO2=false,vsAlert=true;
+const segSet=(a,b,on)=>{$(a).setAttribute("aria-pressed",on);$(b).setAttribute("aria-pressed",!on)};
+$("vsRA").onclick=()=>{vsO2=false;segSet("vsRA","vsO2",true);renderVsFlags()};$("vsO2").onclick=()=>{vsO2=true;segSet("vsRA","vsO2",false);renderVsFlags()};
+$("vsA").onclick=()=>{vsAlert=true;segSet("vsA","vsNA",true)};$("vsNA").onclick=()=>{vsAlert=false;segSet("vsA","vsNA",false)};
+const nv=id=>{const x=parseFloat($(id).value);return isFinite(x)?x:null};
+const formSet=()=>({sbp:nv("vsS"),dbp:nv("vsD"),hr:nv("vsH"),rr:nv("vsR"),spo2:nv("vsO"),temp:nv("vsT"),bgl:nv("vsG"),o2:vsO2,alert:vsAlert});
+function renderVsFlags(){if($("vsFlags"))$("vsFlags").innerHTML=flagHtml(vsFlags(formSet(),ptAge))}
+VS_IDS.forEach(id=>$(id).addEventListener("input",renderVsFlags));
+const vsLine=v=>[v.sbp!=null?`BP ${v.sbp}${v.dbp!=null?"/"+v.dbp:""}`:"",v.hr!=null?`HR ${v.hr}`:"",v.rr!=null?`RR ${v.rr}`:"",
+  v.spo2!=null?`SpO2 ${v.spo2}% ${v.o2?"on O2":"RA"}`:(v.o2?"on O2":""),v.temp!=null?`T ${v.temp}`:"",v.bgl!=null?`BGL ${v.bgl}`:"",v.alert===false?"not alert":"alert"].filter(Boolean).join(" · ");
+function clearVsForm(){VS_IDS.forEach(id=>$(id).value="");vsO2=false;vsAlert=true;segSet("vsRA","vsO2",true);segSet("vsA","vsNA",true);renderVsFlags()}
+$("vsClr").onclick=clearVsForm;
+$("vsAdd").onclick=()=>{const v=formSet();if([v.sbp,v.dbp,v.hr,v.rr,v.spo2,v.temp,v.bgl].every(x=>x==null)){$("vsAdd").textContent="Enter at least one value";setTimeout(()=>$("vsAdd").textContent="Add set with time",1500);return}
+  v.t=Date.now();pt.sets.push(v);
+  /* feed the other tools */
+  if(v.sbp!=null){$("kS").value=v.sbp;$("vS").value=v.sbp}if(v.hr!=null){$("kH").value=v.hr;$("vH").value=v.hr}if(v.dbp!=null)$("vD").value=v.dbp;
+  check();vitals();clearVsForm();renderVsList();renderHandoff()};
+function renderVsList(){$("vsList").innerHTML=pt.sets.length?[...pt.sets].reverse().map((v,i)=>{const idx=pt.sets.length-1-i;
+  return`<div class="card rec"><time>${hm(v.t)}${idx===pt.sets.length-1?" · latest":""}</time><p class="report">${vsLine(v)}</p>${flagHtml(vsFlags(v,ptAge))}<div><button class="btn sm" data-vdel="${idx}">Delete</button></div></div>`}).join(""):""}
+$("vsList").onclick=e=>{const b=e.target.closest("[data-vdel]");if(b){pt.sets.splice(+b.dataset.vdel,1);renderVsList();renderHandoff()}};
+
+/* ---------- Meds given log ----------
+   Repeat intervals (min), max doses and max totals are copied from this app's own drug cards (ALS PCS v5.4).
+   One entry per indication where they differ. */
+const LIM={
+ "Salbutamol":[{ind:"Bronchoconstriction",int:5,max:3}],"Salbutamol (hyperkalemia)":[{ind:"Hyperkalemia",max:2}],
+ "Epinephrine IM":[{ind:"Anaphylaxis",int:5,max:2},{ind:"Bronchoconstriction",max:1},{ind:"Cardiac arrest (anaphylaxis)",max:1}],
+ "Epinephrine NEB":[{ind:"Croup",max:1}],"Dexamethasone":[{ind:"",max:1}],"Diphenhydramine":[{ind:"",max:1}],"ASA":[{ind:"",max:1}],
+ "Nitroglycerin":[{ind:"Cardiac ischemia",int:5,max:6},{ind:"Cardiac ischemia, STEMI",int:5,max:3},{ind:"Pulmonary edema",int:5,max:6}],
+ "Dextrose":[{ind:"",int:10,max:2}],"Dextrose < 2 y":[{ind:"",int:10,max:2}],"Glucagon":[{ind:"",int:20,max:2}],"Naloxone":[{ind:"",int:5,max:3}],
+ "Buprenorphine/naloxone":[{ind:"",int:10,tot:24,u:"mg"}],"Hydrocortisone":[{ind:"",max:1}],"Acetaminophen":[{ind:"",max:1}],"Ibuprofen":[{ind:"",max:1}],"Ketorolac":[{ind:"",max:1}],
+ "Ondansetron":[{ind:"",max:1}],"Dimenhydrinate":[{ind:"≥ 50 kg",int:30,max:2,tot:50,u:"mg"},{ind:"25–49 kg",max:1}],"Oxytocin":[{ind:"",max:1}],"Tranexamic acid":[{ind:"",max:1}],
+ "Defibrillation":[{ind:"",int:2}],"Epinephrine (arrest)":[{ind:"",int:4}],"Amiodarone (arrest)":[{ind:"",int:4,max:2}],"Lidocaine (arrest)":[{ind:"",int:4,max:2}],
+ "Adenosine":[{ind:"",int:2,max:2}],"Amiodarone (tachy)":[{ind:"",int:10,max:2}],"Lidocaine (tachy)":[{ind:"",int:10,max:3}],"Synchronized cardioversion":[{ind:"",max:3}],
+ "Atropine":[{ind:"",int:5,max:2}],"Calcium gluconate 10%":[{ind:"",int:5,max:2}],
+ "Midazolam":[{ind:"Seizure",int:5,max:2},{ind:"Combative (≥ 18 y)",int:5,tot:10,u:"mg"},{ind:"Procedural sedation (AUX)",int:5,tot:10,u:"mg"}],
+ "Fentanyl":[{ind:"Analgesia",int:5,tot:200,u:"mcg"},{ind:"Procedural sedation (AUX)",tot:150,u:"mcg"}],
+ "Morphine":[{ind:"Analgesia ≥ 18 y",int:15,tot:20,u:"mg"},{ind:"Analgesia 1–17 y",int:15,tot:10,u:"mg"},{ind:"Cardiac ischemia",int:5,max:5}],
+ "Ketamine":[{ind:"Analgesia",int:15,max:2},{ind:"Combative"}],"Epinephrine (newborn)":[{ind:"IV/IO",int:4},{ind:"ETT",max:1}],
+};
+const DU={"Salbutamol":"mcg","Dextrose":"g","Dextrose < 2 y":"g","Oxytocin":"units","0.9% NaCl bolus":"mL","0.9% NaCl (ACP)":"mL","Defibrillation":"J","Synchronized cardioversion":"J","Dopamine":"mcg/kg/min","Calcium gluconate 10%":"g","Fentanyl":"mcg"};
+const UNITS=["mg","mcg","g","units","mL","J","puffs","mcg/kg/min"];
+const routesOf=m=>m.r.split("·")[0].split("/").map(x=>x.trim()).filter(Boolean);
+const medById=n=>[...PCP,...ACP].find(m=>m.n===n);
+const slug=n=>"med-"+n.toLowerCase().replace(/[^a-z0-9]+/g,"-");
+function givenStatus(n){const L=pt.given.filter(g=>g.drug===n);if(!L.length)return null;
+  const last=L[L.length-1],lims=LIM[n]||[],lim=lims.find(x=>x.ind===last.ind)||lims[0]||{},same=L.filter(g=>(g.ind||"")===(last.ind||""));
+  const parts=[`Given ${same.length}×${last.ind?" ("+last.ind+")":""}`,`last ${hm(last.t)} (${Math.max(0,Math.round((Date.now()-last.t)/60000))} min ago)`];let cls="ok";
+  if(lim.max!=null){parts.push(`${same.length} of ${lim.max} doses`);if(same.length>=lim.max)cls="crit"}
+  if(lim.tot!=null){const tot=same.filter(g=>g.unit===lim.u&&g.amt!=null).reduce((a,g)=>a+g.amt,0);parts.push(`${fmt(tot,2)} of ${lim.tot} ${lim.u} total`);if(tot>=lim.tot)cls="crit"}
+  if(lim.int!=null&&cls!=="crit"){const due=last.t+lim.int*60000;if(Date.now()<due){parts.push(`next not before ${hm(due)}`);cls="warn"}else parts.push("repeat interval passed")}
+  if(cls==="crit")parts.push("max reached");
+  return{txt:parts.join(" · "),cls}}
+function givenStrip(m){const st=givenStatus(m.n);
+  return`<div class="gstrip" data-m="${m.n}"><span class="gtxt ${st?"sev-"+st.cls:"note"}">${st?st.txt:""}</span><button class="btn sm" data-give="${m.n}">Given</button></div>`}
+function giveForm(m){const lims=LIM[m.n]||[],rts=routesOf(m),u=DU[m.n]||"mg";
+  return`<div class="gform"><h3 style="font-size:15px">Log ${m.n}</h3>
+   ${lims.length>1?`<div class="field"><label>Indication</label><select class="gi" style="font:500 16px var(--body)">${lims.map(l=>`<option>${l.ind}</option>`).join("")}</select></div>`:""}
+   <div class="grid2"><div class="field"><label>Amount</label><input class="ga" type="number" inputmode="decimal" step="any" placeholder="optional"></div>
+   <div class="field"><label>Unit</label><select class="gu">${UNITS.map(x=>`<option${x===u?" selected":""}>${x}</option>`).join("")}</select></div></div>
+   ${rts.length>1?`<div class="field"><label>Route</label><select class="gr" style="font:500 16px var(--body)">${rts.map(r=>`<option>${r}</option>`).join("")}</select></div>`:""}
+   <div style="display:flex;gap:8px"><button class="btn" data-gsave="${m.n}">Log now</button><button class="btn" data-gcancel="1">Cancel</button></div></div>`}
+$("medList").addEventListener("click",e=>{
+  const g=e.target.closest("[data-give]");if(g){const card=g.closest(".card"),m=medById(g.dataset.give);if(card.querySelector(".gform"))return;g.closest(".gstrip").insertAdjacentHTML("afterend",giveForm(m));return}
+  if(e.target.closest("[data-gcancel]")){e.target.closest(".gform").remove();return}
+  const sv=e.target.closest("[data-gsave]");if(sv){const f=sv.closest(".gform"),m=medById(sv.dataset.gsave),a=parseFloat(f.querySelector(".ga").value);
+    pt.given.push({t:Date.now(),drug:m.n,ind:f.querySelector(".gi")?f.querySelector(".gi").value:((LIM[m.n]||[])[0]||{}).ind||"",amt:isFinite(a)?a:null,unit:f.querySelector(".gu").value,route:f.querySelector(".gr")?f.querySelector(".gr").value:routesOf(m)[0]||""});
+    f.remove();refreshGiven()}});
+function refreshGiven(){document.querySelectorAll(".gstrip").forEach(el=>{const st=givenStatus(el.dataset.m),t=el.querySelector(".gtxt");t.className="gtxt "+(st?"sev-"+st.cls:"note");t.textContent=st?st.txt:""});renderGivenList();renderHandoff()}
+const gLine=g=>`${g.drug}${g.amt!=null?" "+fmt(g.amt,3)+" "+g.unit:""}${g.route?" "+g.route:""}${g.ind?" ("+g.ind+")":""}`;
+function renderGivenList(){const L=pt.given;
+  $("givenList").innerHTML=L.length?[...new Set(L.map(g=>g.drug))].map(n=>{const st=givenStatus(n);
+    return`<div class="card rec"><h3 style="font-size:15px">${n}</h3>${st?`<p class="${"sev-"+st.cls}" style="margin:0;font-size:13px;font-weight:600">${st.txt}</p>`:""}
+     <ul class="items" style="list-style:none;padding:0;margin:0">${L.map((g,i)=>[g,i]).filter(([g])=>g.drug===n).map(([g,i])=>`<li style="display:flex;justify-content:space-between;gap:8px;align-items:center"><span><b>${hm(g.t)}</b> ${gLine(g).slice(n.length).trim()||"(no dose entered)"}</span><button class="btn sm" data-gdel="${i}" aria-label="Delete entry">✕</button></li>`).join("")}</ul></div>`}).join("")
+   +`<p class="note">Limits shown are copied from the drug cards (ALS PCS v5.4). Always confirm against your directive.</p>`:`<div class="empty">Nothing logged yet.</div>`}
+$("givenList").onclick=e=>{const b=e.target.closest("[data-gdel]");if(b){pt.given.splice(+b.dataset.gdel,1);refreshGiven()}};
+setInterval(()=>{if(pt.given.length)refreshGiven()},20000);
+
+/* ---------- Handoff ---------- */
+let hoAll=true;const hoOn=new Set(["who","vit","sc","med"]);
+$("hoPick").onclick=e=>{const b=e.target.closest("[data-h]");if(!b)return;hoOn.has(b.dataset.h)?hoOn.delete(b.dataset.h):hoOn.add(b.dataset.h);b.setAttribute("aria-pressed",hoOn.has(b.dataset.h));renderHandoff()};
+$("hoAll").onclick=()=>{hoAll=true;segSet("hoAll","hoLast",true);renderHandoff()};$("hoLast").onclick=()=>{hoAll=false;segSet("hoAll","hoLast",false);renderHandoff()};
+$("hoCopy").onclick=()=>copyText($("hoOut"),$("hoCopy"));
+function renderHandoff(){if(!$("hoOut"))return;const out=[];
+  if(hoOn.has("who")){const w=[ptAge!=null?"Age "+fmtAge(ptAge):"",kg?fmt(kg,1)+" kg":""].filter(Boolean).join(" · ");if(w)out.push(w)}
+  if(hoOn.has("vit")&&pt.sets.length){const S=hoAll||pt.sets.length<=2?pt.sets:[pt.sets[0],pt.sets[pt.sets.length-1]];out.push("Vitals:\n"+S.map(v=>`  ${hm(v.t)} ${vsLine(v)}`).join("\n"))}
+  if(hoOn.has("sc")&&pt.scores.length){const ids=[...new Set(pt.scores.map(x=>x.id))];
+    out.push("Scores:\n"+ids.map(id=>{const L=pt.scores.filter(x=>x.id===id),last=L[L.length-1],prev=L.filter(x=>x.v!=null);
+      return`  ${hm(last.t)} ${last.line}${prev.length>1?` [${prev.slice(0,-1).map(x=>fmt(x.v,1)+" at "+hm(x.t)).join(", ")}]`:""}`}).join("\n"))}
+  if(hoOn.has("med")&&pt.given.length){const groups=new Map();pt.given.forEach(g=>{const k=gLine(g);if(!groups.has(k))groups.set(k,[]);groups.get(k).push(hm(g.t))});
+    out.push("Meds given:\n"+[...groups].map(([k,ts])=>`  ${k}: ${ts.join(", ")}${ts.length>1?" ("+ts.length+" doses)":""}`).join("\n"))}
+  $("hoOut").textContent=out.length?out.join("\n"):"Add vitals, scores or meds given to build the handoff."}
+
+/* ---------- Theme ---------- */
+let theme=store.get("theme","auto");
+function applyTheme(){if(theme==="auto")delete document.documentElement.dataset.theme;else document.documentElement.dataset.theme=theme;
+  document.querySelectorAll("[data-th]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.th===theme))}
+$("appear").onclick=e=>{const b=e.target.closest("[data-th]");if(b){theme=b.dataset.th;store.set("theme",theme);applyTheme()}};
+applyTheme();
+
+/* ---------- Search ---------- */
+function searchIndex(){const I=[],add=(label,sub,hay,act)=>I.push({label,sub,hay:(label+" "+sub+" "+hay).toLowerCase(),act});
+  const acpOnly=new Set(ACP.map(m=>m.n));
+  [...PCP,...ACP.filter(m=>!PCP.some(p=>p.n===m.n))].forEach(m=>add(m.n,(acpOnly.has(m.n)?"ACP · ":"")+"Meds · "+m.d,m.r+" "+(OV[m.n]?OV[m.n](70).map(r=>r[0]).join(" "):""),()=>{
+    if(acpOnly.has(m.n)&&scope!=="acp")setScope("acp");if(m.aux&&!auxOn(m.aux)){go("settings");return}go("meds");const c=$(slug(m.n));if(c)c.scrollIntoView()}));
+  add("NIHSS","Scores · NIH Stroke Scale","stroke",()=>{advId="nihss";go("adv");renderAdv()});
+  SCALES.forEach(sc=>add(sc.n,"Scores · "+sc.full,sc.use,()=>{advId=sc.id;go("adv");renderAdv()}));
+  PROTO.forEach(p=>add(p.n,"Scores · Ontario protocol · "+p.full,p.use,()=>{advId=p.id;go("adv");renderAdv()}));
+  DIRS.forEach(D=>add(D.n,"Check · directive"+(D.s==="acp"?" (ACP)":""),D.d.join(" "),()=>{if(D.s==="acp"&&scope!=="acp")setScope("acp");ckDir=D.id;go("check");renderDirs()}));
+  document.querySelectorAll("#v-tools .card h3, #v-tools h2.sec").forEach(h=>add(h.textContent,"Tools","",()=>{go("tools");h.scrollIntoView()}));
+  [["Vitals sets","p-vitals"],["Meds given","p-given"],["Patient scores","p-scores"],["Handoff","p-handoff"],["Age and vital signs (PCS)","pedsRef"]].forEach(([l,id])=>add(l,"Patient","",()=>{go("pt");if(id==="pedsRef")$("pedsRef").open=true;$(id).scrollIntoView()}));
+  [["Base hospital","settings"],["Auxiliary directives (AUX)","settings"],["Theme / dark mode","appear"],["References / ALS PCS","refs"]].forEach(([l,id])=>add(l,"Settings","",()=>{go("settings");$(id).scrollIntoView()}));
+  Object.keys(DRUGS).forEach(n=>add(n,"Home med · "+(DRUGS[n]||[]).map(c=>CLS[c]).join(", ")+" · add to Check","",()=>{picked.add(n);rebuild();go("check")}));
+  return I}
+let SIDX=null;
+function runSearch(){const q=$("srchQ").value.trim().toLowerCase(),words=q.split(/\s+/).filter(Boolean);
+  if(!words.length){$("srchRes").innerHTML=`<p class="note">Searches drug names and indications, scores, directives, tools and home medications.</p>`;return}
+  const hits=SIDX.filter(x=>words.every(w=>x.hay.includes(w))).sort((a,b)=>(b.label.toLowerCase().startsWith(words[0])-a.label.toLowerCase().startsWith(words[0]))||(a.sub.startsWith("Home med")-b.sub.startsWith("Home med"))).slice(0,30);
+  $("srchRes").innerHTML=hits.length?hits.map((x,i)=>`<button class="sres" data-si="${SIDX.indexOf(x)}"><span>${x.label}</span><small>${x.sub}</small></button>`).join(""):`<p class="empty">No matches.</p>`}
+$("srchQ").addEventListener("input",runSearch);
+$("srchRes").onclick=e=>{const b=e.target.closest("[data-si]");if(b){$("srchQ").value="";SIDX[+b.dataset.si].act()}};
+$("srchBtn").onclick=()=>{if(!$("v-search").hidden){go(lastTab);return}SIDX=searchIndex();go("search");$("srchQ").value="";runSearch();setTimeout(()=>$("srchQ").focus(),50)};
+$("srchBack").onclick=()=>go(lastTab);
+
 /* ---------- New patient: clear everything patient-specific ---------- */
 const TOOL_IDS=["tLb","tKg","tF","tC","hFt","hIn","vS","vD","vH","dV","dT","aAge"];
 function resetPatient(){
   kg=null;kgAt=null;showWeight();
+  pt.sets.length=0;pt.given.length=0;pt.scores.length=0;clearVsForm();renderVsList();renderGivenList();renderPtScores();
+  document.querySelectorAll(".gform").forEach(f=>f.remove());$("nTrend").textContent="";
   nState.fill(null);nPaint();nUpdate();
   Object.keys(advMem).forEach(k=>delete advMem[k]);Object.keys(prMem).forEach(k=>delete prMem[k]);renderAdv();
-  bSel=[];palms=0;
+  bSel=[];palms=0;lbSel.clear();
   [...DOSE_IDS,...INF_IDS].forEach(id=>{const e=$(id);if(e.tagName==="SELECT")e.selectedIndex=0;else e.value=""});
   TOOL_IDS.forEach(id=>$(id).value="");$("hOut").textContent="—";vitals();drip();age();
   picked.clear();ck.cond.clear();ckDir=null;["kS","kH","kA","kQ"].forEach(i=>$(i).value="");$("kRes").innerHTML="";ck.cls.clear();renderDirs();
-  renderMeds();renderBurns();window.scrollTo(0,0);
+  setAge(null);renderMeds();renderBurns();window.scrollTo(0,0);
 }
 $("newPt").onclick=()=>{const b=$("newPt");
   if(b.classList.contains("armed")){clearTimeout(b._t);b.classList.remove("armed");b.textContent="Cleared";resetPatient();b._t=setTimeout(()=>b.textContent="New patient",1500);return}
@@ -1204,12 +1506,12 @@ document.addEventListener("visibilitychange",()=>{
   if(hiddenAt&&Date.now()-hiddenAt>=STALE_MS)resetPatient();hiddenAt=null});
 
 /* ---------- tabs ---------- */
-const APPVER="v3";$("verTxt").textContent=APPVER;
+const APPVER="v4";$("verTxt").textContent=APPVER;
 let lastTab="meds";
 function go(v){document.querySelectorAll("section.view").forEach(s=>s.hidden=s.id!=="v-"+v);
   document.querySelectorAll("nav.tabs button").forEach(b=>b.setAttribute("aria-selected",b.dataset.v===v));
-  $("gear").setAttribute("aria-pressed",v==="settings");
-  if(v!=="settings"){lastTab=v;store.set("tab",v)}window.scrollTo(0,0);}
+  $("gear").setAttribute("aria-pressed",v==="settings");$("srchBtn").setAttribute("aria-pressed",v==="search");
+  if(v!=="settings"&&v!=="search"){lastTab=v;store.set("tab",v)}window.scrollTo(0,0);}
 /* Gear toggles the Settings page; Done (or the gear again) returns to the tab you were on. */
 $("gear").onclick=()=>go($("v-settings").hidden?"settings":lastTab);
 $("setBack").onclick=()=>go(lastTab);
@@ -1218,7 +1520,8 @@ document.addEventListener("click",e=>{const c=e.target.closest(".jump [data-to]"
 document.querySelector("nav.tabs").addEventListener("click",e=>{const b=e.target.closest("button");if(b)go(b.dataset.v)});
 function hdr(){document.documentElement.style.setProperty("--hdr",$("hdr").offsetHeight+8+"px")}
 addEventListener("resize",hdr);
-renderSettings();showWeight();setBasis(perKg);setScope(scope);renderDirs();renderBurns();hdr();go(["meds","dose","nihss","adv","check","tools"].includes(store.get("tab"))?store.get("tab"):"meds");
+renderSettings();showWeight();setBasis(perKg);setScope(scope);renderDirs();renderBurns();hdr();renderPedsRef();renderVsList();renderGivenList();renderPtScores();renderVsFlags();
+{let t=store.get("tab");if(t==="nihss"){t="adv";advId="nihss";store.set("advId",advId);renderAdv()}go(["meds","dose","pt","adv","check","tools"].includes(t)?t:"meds")}
 </script>
 <script>
 /* Offline + updates. The app always opens from the saved copy (instant, no signal needed).

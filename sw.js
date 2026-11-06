@@ -1,6 +1,6 @@
 // Offline cache for Medic Pocket Calc.
 // Bump VERSION with every release: that's what makes the "Update ready" banner appear on the phone.
-const VERSION = "mpc-v3";
+const VERSION = "mpc-v4";
 const CORE = ["./", "index.html", "manifest.webmanifest", "icon-180.png", "icon-192.png", "icon-512.png"];
 
 self.addEventListener("install", e => {
