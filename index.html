@@ -114,6 +114,15 @@ input[type=search]{font:500 16px var(--body);padding:9px 10px;border:1px solid v
 .ovr{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:2px 12px}
 .ovr dt{font-size:14px;color:var(--muted);min-width:0;overflow-wrap:anywhere}
 .ovr dd{margin:0 0 0 auto;font:600 16px var(--mono);color:var(--accent);text-align:right;font-variant-numeric:tabular-nums}
+.hbtns{display:flex;gap:8px;align-items:center}
+.gear{display:inline-flex;align-items:center;justify-content:center;width:34px;height:32px;padding:0;border-radius:8px;border:1px solid var(--line);background:var(--surface-2);color:var(--muted)}
+.gear[aria-pressed=true]{color:var(--accent);border-color:var(--accent)}
+/* Section headings inside a tab, with a jump-chip row at the top */
+h2.sec{font-size:18px;margin-top:6px;padding-top:6px;border-top:1px solid var(--line);scroll-margin-top:calc(env(safe-area-inset-top,0px) + var(--hdr,112px) + 8px)}
+.grp-note{width:100%;margin:6px 0 0;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;font-weight:600}
+.chips.jump{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;margin:0 -16px;padding:0 16px 2px}
+.chips.jump::-webkit-scrollbar{display:none}
+.chips.jump .chip{font-size:13px;padding:7px 11px;white-space:nowrap;flex:0 0 auto}
 .brand .newpt{font:600 13px var(--body);padding:6px 10px;border-radius:8px;border:1px solid var(--accent);background:transparent;color:var(--accent);white-space:nowrap}
 .brand .newpt.armed{background:var(--crit);border-color:var(--crit);color:var(--bg)}
 .wwarn{margin:0;font-size:13px;font-weight:600;color:var(--crit)}
@@ -141,7 +150,7 @@ nav.tabs button[aria-selected=true]{color:var(--accent);border-top-color:var(--a
 <header class="bar" id="hdr">
   <div class="wrap">
     <button class="upd" id="updBar" hidden>Update ready · tap to reload (clears current entries)</button>
-    <div class="brand"><h1>Medic <span>Pocket</span> Calc</h1><button class="newpt" id="newPt">New patient</button></div>
+    <div class="brand"><h1>Medic <span>Pocket</span> Calc</h1><div class="hbtns"><button class="newpt" id="newPt">New patient</button><button class="gear" id="gear" aria-label="Settings"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M19.4 13a7.6 7.6 0 0 0 0-2l2.1-1.6-2-3.5-2.5 1a7.4 7.4 0 0 0-1.7-1L15 3.3h-4l-.4 2.6a7.4 7.4 0 0 0-1.7 1l-2.5-1-2 3.5L6.6 11a7.6 7.6 0 0 0 0 2l-2.1 1.6 2 3.5 2.5-1a7.4 7.4 0 0 0 1.7 1l.4 2.6h4l.4-2.6a7.4 7.4 0 0 0 1.7-1l2.5 1 2-3.5zM13 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z" transform="translate(-1 0)"/></svg></button></div></div>
     <div class="wt">
       <label for="wIn">Weight</label>
       <input id="wIn" type="number" inputmode="decimal" placeholder="—" min="0" step="0.1">
@@ -163,8 +172,8 @@ nav.tabs button[aria-selected=true]{color:var(--accent);border-top-color:var(--a
     <div class="seg" role="group" aria-label="Scope of practice"><button id="scP" aria-pressed="true">PCP</button><button id="scA" aria-pressed="false">ACP</button></div>
   </div>
   <p class="note" id="scNote"></p>
-  <p class="warnbox">Doses and conditions are from the <a href="https://www.ontario.ca/files/2025-04/moh-advanced-life-support-als-patient-care-standards-pcs-5.4-en-2025-04-23.pdf" target="_blank" rel="noopener">ALS PCS v5.4</a>. Volumes appear only where the PCS states a concentration. Your RBHP authorization decides what you can give, including auxiliary (AUX) directives.</p>
-  <p class="note" id="auxSum"></p>
+  <p class="warnbox">Doses and conditions: <a href="https://www.ontario.ca/files/2025-04/moh-advanced-life-support-als-patient-care-standards-pcs-5.4-en-2025-04-23.pdf" target="_blank" rel="noopener">ALS PCS v5.4</a>. Volumes only where the PCS states a concentration. Your RBHP authorization decides what you can give.<br><span id="auxSum"></span></p>
+  <div class="chips jump" id="medJump"></div>
   <div id="medList" style="display:flex;flex-direction:column;gap:10px"></div>
   <p class="note">Need a drug that isn't listed? Use the Dose tab to work from any concentration.</p>
 </section>
@@ -250,19 +259,59 @@ nav.tabs button[aria-selected=true]{color:var(--accent);border-top-color:var(--a
   <h2>Scores</h2>
   <p class="note">Pick a protocol or scale, then copy the line or save it to Recent with a timestamp.</p>
   <div class="chips" id="advPick"></div>
-  <div id="advBody" style="display:flex;flex-direction:column;gap:12px"></div>
+  <div id="advBody" style="display:flex;flex-direction:column;gap:12px;scroll-margin-top:calc(env(safe-area-inset-top,0px) + var(--hdr,112px) + 8px)"></div>
 </section>
 
 <!-- TOOLS -->
 <section class="view" id="v-tools" hidden>
   <h2>Tools</h2>
-  <div class="card" id="settings" style="scroll-margin-top:140px">
-    <h3>Settings: base hospital and auxiliary directives</h3>
-    <div class="field"><label for="bhSel">Regional base hospital</label><select id="bhSel" style="font:500 16px var(--body)"></select></div>
-    <p class="note" style="margin:0">Switch on only the auxiliary (AUX) directives your base hospital has authorized you for. Switched-off directives are hidden from the Meds and Check tabs. Each base hospital keeps its own choices. This app has no base-hospital-specific content: doses still come from the ALS PCS.</p>
-    <div class="opts" id="auxList"></div>
+  <div class="chips jump" data-jump="tools"><button class="chip" data-to="t-vitals">Vitals &amp; weight</button><button class="chip" data-to="t-fluids">Fluids</button><button class="chip" data-to="t-burns">Burns</button><button class="chip" data-to="t-conv">Conversions</button></div>
+  <p class="note">The clinical cut-offs and formulas here (MAP, shock index, APLS weights, rule of nines, Parkland) are general references, not Ontario standards. In the field, your directives govern.</p>
+  <h2 class="sec" id="t-vitals">Vitals &amp; weight</h2>
+  <div class="card">
+    <h3>MAP and shock index</h3>
+    <div class="grid2">
+      <div class="field"><label for="vS">SBP</label><input id="vS" type="number" inputmode="numeric"></div>
+      <div class="field"><label for="vD">DBP</label><input id="vD" type="number" inputmode="numeric"></div>
+      <div class="field"><label for="vH">Heart rate</label><input id="vH" type="number" inputmode="numeric"></div>
+    </div>
+    <dl class="rows" id="vOut"></dl>
   </div>
-  <p class="note">Conversions are plain math. The clinical cut-offs and formulas on this tab (MAP, shock index, APLS weights, rule of nines, Parkland) are general references, not Ontario standards. In the field, your directives govern.</p>
+  <div class="card">
+    <h3>Pediatric weight estimate</h3>
+    <div class="grid2">
+      <div class="field"><label for="aAge">Age</label><input id="aAge" type="number" inputmode="decimal" step="any"></div>
+      <div class="field"><label for="aUnit">Unit</label><select id="aUnit"><option value="y">years</option><option value="m">months</option></select></div>
+    </div>
+    <div class="out" id="aOut">—</div>
+    <p class="note">General reference (APLS formulas), not an Ontario standard: &lt;12 mo 0.5×months+4; 1–5 y 2×age+8; 6–12 y 3×age+7. A length-based tape is more accurate.</p>
+    <button class="btn" id="aUse" style="align-self:flex-start">Use as patient weight</button>
+  </div>
+  <h2 class="sec" id="t-fluids">Fluids</h2>
+  <div class="card">
+    <h3>IV drip rate</h3>
+    <div class="grid2">
+      <div class="field"><label for="dV">Volume (mL)</label><input id="dV" type="number" inputmode="decimal" step="any"></div>
+      <div class="field"><label for="dT">Time (min)</label><input id="dT" type="number" inputmode="decimal" step="any"></div>
+      <div class="field"><label for="dF">Drop set</label>
+        <select id="dF"><option value="10">10 gtt/mL</option><option value="15">15 gtt/mL</option><option value="20">20 gtt/mL</option><option value="60">60 gtt/mL (micro)</option></select></div>
+    </div>
+    <dl class="rows" id="dOut"></dl>
+  </div>
+  <h2 class="sec" id="t-burns">Burns</h2>
+  <p class="note"><b>Rule of nines</b> · Adult chart. Tap each area with partial or full thickness burns. Don't count superficial (red, unblistered) skin.</p>
+  <div class="total"><div class="n" id="bTot">0%</div><div class="lbl" style="flex:1">TBSA</div><button id="bReset">Reset</button></div>
+  <div class="card"><h3>Body areas</h3><div class="chips" id="bChips"></div></div>
+  <div class="card">
+    <h3>Patient-palm method (1% each)</h3>
+    <div style="display:flex;gap:10px;align-items:center">
+      <button class="btn" id="pMinus" aria-label="Remove one palm">−</button>
+      <span class="out" id="pCount">0</span><small class="note">palms</small>
+      <button class="btn" id="pPlus" aria-label="Add one palm">+</button>
+    </div>
+  </div>
+  <div class="card"><h3>Parkland formula</h3><dl class="rows" id="park"></dl><p class="note">General reference, not an Ontario standard. 4 mL × kg × %TBSA over 24 h, half in the first 8 h from time of burn. For the receiving facility; follow your own fluid directive in the field.</p></div>
+  <h2 class="sec" id="t-conv">Conversions</h2>
   <div class="card">
     <h3>Pounds ↔ kilograms</h3>
     <div class="grid2">
@@ -286,48 +335,17 @@ nav.tabs button[aria-selected=true]{color:var(--accent);border-top-color:var(--a
     </div>
     <div class="out" id="hOut">—</div>
   </div>
-  <div class="card">
-    <h3>MAP and shock index</h3>
-    <div class="grid2">
-      <div class="field"><label for="vS">SBP</label><input id="vS" type="number" inputmode="numeric"></div>
-      <div class="field"><label for="vD">DBP</label><input id="vD" type="number" inputmode="numeric"></div>
-      <div class="field"><label for="vH">Heart rate</label><input id="vH" type="number" inputmode="numeric"></div>
-    </div>
-    <dl class="rows" id="vOut"></dl>
+</section>
+
+<!-- SETTINGS (opened from the gear in the header; not a tab) -->
+<section class="view" id="v-settings" hidden>
+  <div style="display:flex;justify-content:space-between;align-items:center;gap:10px"><h2>Settings</h2><button class="btn sm" id="setBack">Done</button></div>
+  <div class="card" id="settings">
+    <h3>Base hospital and auxiliary directives</h3>
+    <div class="field"><label for="bhSel">Regional base hospital</label><select id="bhSel" style="font:500 16px var(--body)"></select></div>
+    <p class="note" style="margin:0">Switch on only the auxiliary (AUX) directives your base hospital has authorized you for. Switched-off directives are hidden from the Meds and Check tabs. Each base hospital keeps its own choices. This app has no base-hospital-specific content: doses still come from the ALS PCS.</p>
+    <div class="opts" id="auxList"></div>
   </div>
-  <div class="card">
-    <h3>IV drip rate</h3>
-    <div class="grid2">
-      <div class="field"><label for="dV">Volume (mL)</label><input id="dV" type="number" inputmode="decimal" step="any"></div>
-      <div class="field"><label for="dT">Time (min)</label><input id="dT" type="number" inputmode="decimal" step="any"></div>
-      <div class="field"><label for="dF">Drop set</label>
-        <select id="dF"><option value="10">10 gtt/mL</option><option value="15">15 gtt/mL</option><option value="20">20 gtt/mL</option><option value="60">60 gtt/mL (micro)</option></select></div>
-    </div>
-    <dl class="rows" id="dOut"></dl>
-  </div>
-  <div class="card">
-    <h3>Pediatric weight estimate</h3>
-    <div class="grid2">
-      <div class="field"><label for="aAge">Age</label><input id="aAge" type="number" inputmode="decimal" step="any"></div>
-      <div class="field"><label for="aUnit">Unit</label><select id="aUnit"><option value="y">years</option><option value="m">months</option></select></div>
-    </div>
-    <div class="out" id="aOut">—</div>
-    <p class="note">General reference (APLS formulas), not an Ontario standard: &lt;12 mo 0.5×months+4; 1–5 y 2×age+8; 6–12 y 3×age+7. A length-based tape is more accurate.</p>
-    <button class="btn" id="aUse" style="align-self:flex-start">Use as patient weight</button>
-  </div>
-<h2 style="margin-top:8px">Burns: rule of nines</h2>
-  <p class="note">Adult chart. Tap each area with partial or full thickness burns. Don't count superficial (red, unblistered) skin.</p>
-  <div class="total"><div class="n" id="bTot">0%</div><div class="lbl" style="flex:1">TBSA</div><button id="bReset">Reset</button></div>
-  <div class="card"><h3>Body areas</h3><div class="chips" id="bChips"></div></div>
-  <div class="card">
-    <h3>Patient-palm method (1% each)</h3>
-    <div style="display:flex;gap:10px;align-items:center">
-      <button class="btn" id="pMinus" aria-label="Remove one palm">−</button>
-      <span class="out" id="pCount">0</span><small class="note">palms</small>
-      <button class="btn" id="pPlus" aria-label="Add one palm">+</button>
-    </div>
-  </div>
-  <div class="card"><h3>Parkland formula</h3><dl class="rows" id="park"></dl><p class="note">General reference, not an Ontario standard. 4 mL × kg × %TBSA over 24 h, half in the first 8 h from time of burn. For the receiving facility; follow your own fluid directive in the field.</p></div>
   <div class="card" id="refs">
     <h3>References</h3>
     <ul style="margin:0;padding-left:18px;display:flex;flex-direction:column;gap:6px">
@@ -338,6 +356,7 @@ nav.tabs button[aria-selected=true]{color:var(--accent);border-top-color:var(--a
       <li><a href="https://www.prehospitalmedicine.ca/" target="_blank" rel="noopener">Sunnybrook Centre for Prehospital Medicine</a> <span class="note">· regional base hospital</span></li>
     </ul>
   </div>
+  <div class="card"><h3>About</h3><p class="note" style="margin:0">Medic Pocket Calc <span id="verTxt"></span>. Personal quick reference; works fully offline. Patient entries stay in memory only and are never saved. Saved on this phone: PCP/ACP, kg/lb, these settings and Recent score lines.</p></div>
 </section>
 
 
@@ -470,7 +489,7 @@ const ACP=[
 let scope=store.get("scope","pcp");
 function setScope(v){scope=v;store.set("scope",v);$("scP").setAttribute("aria-pressed",v==="pcp");$("scA").setAttribute("aria-pressed",v==="acp");
   if(typeof renderDirs==="function"&&$("kDirs"))try{renderDirs()}catch(e){}
-  $("scNote").textContent=v==="acp"?"ACP directives first, then the PCP directives you also hold. Adult and pediatric doses are side by side; pick by age.":"";renderMeds()}
+  $("scNote").textContent=v==="acp"?"ACP and the PCP directives you also hold, grouped by topic. Adult and pediatric doses are side by side; pick by age.":"";renderMeds()}
 $("scP").onclick=()=>setScope("pcp");$("scA").onclick=()=>setScope("acp");
 const dl=rows=>`<dl class="rows">${rows.map(([a,b,big])=>`<dt>${a}</dt><dd${big?' class="big"':""}>${b}</dd>`).join("")}</dl>`;
 /* Quick overview per card: [directive, route · first dose]. Full detail sits behind "Full details". */
@@ -538,22 +557,36 @@ function renderSettings(){
   $("bhSel").innerHTML=BH.map(([v,l])=>`<option value="${v}"${v===bh?" selected":""}>${l}</option>`).join("");
   $("auxList").innerHTML=AUX.map(x=>`<button class="opt" data-aux="${x.id}" aria-pressed="${auxOn(x.id)}"><b>${auxOn(x.id)?"On":"Off"}</b><span>${x.n} <small class="note">· ${x.scope}</small></span></button>`).join("");
   const on=AUX.filter(x=>auxOn(x.id)).map(x=>x.n);
-  $("auxSum").innerHTML=`Base hospital: <b>${bh?BH.find(b=>b[0]===bh)[1]:"not set"}</b> · AUX on: ${on.length?on.join(", "):"none"} · <a href="#settings" id="auxGo">change</a>`;
+  $("auxSum").innerHTML=`<b>${bh?BH.find(b=>b[0]===bh)[1]:"Base hospital not set"}</b> · AUX on ${on.length} of ${AUX.length} · <a href="#" id="auxGo">⚙ change</a>`;
 }
 function auxChanged(){store.set("auxOff_"+bh,[...auxOff]);renderSettings();renderMeds();renderDirs()}
 $("bhSel").onchange=e=>{bh=e.target.value;store.set("bh",bh);auxOff=new Set(store.get("auxOff_"+bh,[]));renderSettings();renderMeds();renderDirs()};
 $("auxList").onclick=e=>{const b=e.target.closest("[data-aux]");if(!b)return;const id=b.dataset.aux;auxOff.has(id)?auxOff.delete(id):auxOff.add(id);auxChanged()};
-$("auxSum").onclick=e=>{if(e.target.id==="auxGo"){e.preventDefault();go("tools");$("settings").scrollIntoView()}};
+$("auxSum").onclick=e=>{if(e.target.id==="auxGo"){e.preventDefault();go("settings")}};
 
 function medCard(m,body,ov){return`<div class="card"><div class="med-head"><h3>${m.n}</h3><span class="route">${m.r}</span></div>${ov}${body}</div>`}
 const ovl=rows=>`<dl class="ov">${rows.map(([a,b])=>`<div class="ovr"><dt>${a}</dt><dd>${b}</dd></div>`).join("")}</dl>`;
+/* Topic groups (organisation only; no clinical content). Same groups are used on the Check tab. */
+const GROUPS=[["arrest","Arrest, rhythm & shock"],["chest","Chest pain & CPE"],["resp","Breathing & allergy"],["metab","Glucose, adrenal & potassium"],
+ ["tox","Opioids"],["pain","Pain, nausea, seizure & sedation"],["fluid","Fluids & bleeding"],["ob","Childbirth & newborn"],["airway","Airway"]];
+const MEDGRP={"Defibrillation":"arrest","Epinephrine (arrest)":"arrest","Amiodarone (arrest)":"arrest","Lidocaine (arrest)":"arrest","Adenosine":"arrest","Amiodarone (tachy)":"arrest","Lidocaine (tachy)":"arrest","Synchronized cardioversion":"arrest","Atropine":"arrest","Dopamine":"arrest",
+ "ASA":"chest","Nitroglycerin":"chest",
+ "Salbutamol":"resp","Epinephrine IM":"resp","Epinephrine NEB":"resp","Dexamethasone":"resp","Diphenhydramine":"resp",
+ "Dextrose":"metab","Dextrose < 2 y":"metab","Glucagon":"metab","Hydrocortisone":"metab","Calcium gluconate 10%":"metab","Salbutamol (hyperkalemia)":"metab",
+ "Naloxone":"tox","Buprenorphine/naloxone":"tox",
+ "Acetaminophen":"pain","Ibuprofen":"pain","Ketorolac":"pain","Fentanyl":"pain","Morphine":"pain","Ketamine":"pain","Ondansetron":"pain","Dimenhydrinate":"pain","Midazolam":"pain",
+ "0.9% NaCl bolus":"fluid","0.9% NaCl (ACP)":"fluid","Tranexamic acid":"fluid",
+ "Oxytocin":"ob","Epinephrine (newborn)":"ob","Lidocaine spray":"airway"};
 function renderMeds(){
   const list=(scope==="acp"?[...ACP,...PCP.filter(p=>!["Hydrocortisone"].includes(p.n))]:PCP).filter(m=>!m.aux||auxOn(m.aux));
-  $("medList").innerHTML=list.map(m=>{
+  const card=m=>{
     if(m.w&&!kg)return medCard(m,`<div class="empty">${NW}</div>`,ovl(auxRows(OV[m.n]?OV[m.n](70):[]).map(([a])=>[a,"—"])));
     const o=m.f(kg),ov=OV[m.n]?ovl(auxRows(OV[m.n](kg))):"";
     const full=typeof o==="string"?`<div class="empty">${o}</div>`:`<details class="more"><summary>Full details</summary>${dl(auxRows(o))}</details>`;
-    return medCard(m,full,ov)}).join("");
+    return medCard(m,full,ov)};
+  const used=GROUPS.filter(([g])=>list.some(m=>(MEDGRP[m.n]||"fluid")===g));
+  $("medJump").innerHTML=used.map(([g,l])=>`<button class="chip" data-to="m-${g}">${l}</button>`).join("");
+  $("medList").innerHTML=used.map(([g,l])=>`<h2 class="sec" id="m-${g}">${l}</h2>`+list.filter(m=>(MEDGRP[m.n]||"fluid")===g).map(card).join("")).join("");
   doseCalc(); infusion();
 }
 
@@ -821,10 +854,16 @@ function renderProto(p){
 
 const HOW={"news2": "<li>Measure all seven. Count RR for a full 30–60 s.</li><li>SpO2 uses Scale 1 (this app). Hospitals switch to Scale 2 for patients with a prescribed target of 88–92%, e.g. hypercapnic COPD.</li><li>Any supplemental oxygen scores 2.</li><li>Consciousness is ACVPU: new confusion, or responds only to voice or pain, or unresponsive, scores 3.</li><li>Escalation: total ≥ 5 or any single 3 needs urgent review; ≥ 7 is an emergency.</li>", "qsofa": "<li>Use only when you suspect infection.</li><li>One point each: RR ≥ 22, any altered mentation (GCS &lt; 15), SBP ≤ 100.</li><li>≥ 2 flags higher risk of death or ICU stay. It isn't a sepsis diagnosis, and &lt; 2 doesn't rule sepsis out.</li>", "heart": "<li>For chest pain without STEMI.</li><li><b>History:</b> 0 = non-specific; 1 = mixed features; 2 = mainly typical (pressure, radiation, exertional, relieved by nitro).</li><li><b>ECG:</b> 1 = LBBB, LVH, paced rhythm or repolarization changes; 2 = ST depression or elevation not explained by those.</li><li><b>Risk factors:</b> hypertension, high cholesterol, diabetes, obesity (BMI &gt; 30), smoking (current or quit ≤ 3 months), family history (parent/sibling with CVD before 65). Score 2 for ≥ 3, or any known atherosclerotic disease (prior MI, PCI/CABG, stroke/TIA, PAD).</li><li><b>Troponin:</b> pick \"not available\" prehospital and report it as HEAR.</li>", "wells": "<li>\"PE most likely\" is your judgement that PE is more likely than any alternative diagnosis.</li><li>Immobilization means bed rest ≥ 3 days; surgery means within the last 4 weeks.</li><li>Malignancy means treatment within 6 months or palliative.</li><li>Report both tiers: &gt; 6 high, 2–6 moderate, &lt; 2 low; and PE likely (&gt; 4) or unlikely (≤ 4).</li>", "perc": "<li>Use only when your gestalt says PE risk is already low (under about 15%).</li><li>All eight must be absent to rule PE out.</li><li>Hormone use: oral contraceptives, HRT or other estrogen.</li><li>Recent surgery or trauma: within 4 weeks and needing hospitalization or general anesthesia.</li>", "crb65": "<li>Confusion means new disorientation to person, place or time.</li><li>One point each.</li><li>The hospital adds urea &gt; 7 mmol/L to make CURB-65.</li>", "cpss": "<li><b>Facial droop:</b> ask the patient to smile or show their teeth.</li><li><b>Arm drift:</b> eyes closed, both arms straight out, palms up, for 10 s.</li><li><b>Speech:</b> have them repeat a simple sentence (\"The sky is blue in Toronto\"). Slurred, wrong words or no speech is abnormal.</li><li>Any one abnormal finding is positive.</li>", "lams": "<li><b>Face:</b> ask the patient to smile or show their teeth.</li><li><b>Arm:</b> arms out 10 s (90° sitting, 45° lying). Drifts down = 1; falls rapidly = 2.</li><li><b>Grip:</b> have them squeeze your fingers with both hands and compare. Weak = 1; none = 2.</li><li>Score the weaker side.</li><li>Ontario Acute Stroke Protocol: screen everyone within 24 h of onset. ≥ 4 means CTAS 2 and an LVO Clinical Screen positive report to the receiving hospital.</li>", "cthead": "<li>Applies to GCS 13–15 after head injury with witnessed LOC, definite amnesia or witnessed disorientation.</li><li>Doesn't apply if under 16, on anticoagulants, or after a seizure.</li><li>Dangerous mechanism: pedestrian struck, ejection from a vehicle, or fall &gt; 3 ft or 5 stairs.</li><li>Any high-risk factor predicts need for neurosurgery; a medium-risk factor predicts brain injury on CT.</li>", "cspine": "<li>For alert (GCS 15), stable trauma patients.</li><li><b>Step 1:</b> any high-risk factor means imaging. Dangerous mechanism: fall ≥ 3 ft or 5 stairs, axial load, MVC &gt; 100 km/h, rollover, ejection, motorized recreational vehicle, or bicycle collision.</li><li><b>Step 2:</b> you need at least one low-risk factor before testing range of motion. A rear-end collision isn't \"simple\" if the car was pushed into traffic, hit by a bus or truck, rolled, or hit at high speed.</li><li><b>Step 3:</b> ask the patient to actively turn their head 45° left and right. If they can, no imaging.</li><li>In the field, the BLS PCS SMR Standard (Ontario protocols above) is what you follow.</li>", "fourat": "<li><b>Alertness:</b> observe. If asleep, try to wake with voice or a touch on the shoulder.</li><li><b>AMT4:</b> ask age, date of birth, place (name of hospital or building), and current year.</li><li><b>Attention:</b> \"Tell me the months of the year backwards, starting at December.\" One prompt of \"What's the month before December?\" is allowed.</li><li><b>Acute change:</b> get it from family, a caregiver or notes. Has alertness, cognition or other mental function changed in the last 2 weeks, and is it still fluctuating?</li>", "cfs": "<li>Rate baseline function about 2 weeks before this illness, from the patient or family.</li><li>4 = independent but slowed or limited by symptoms.</li><li>5 = needs help with higher-order activities: finances, transport, heavy housework, medications.</li><li>6 = needs help with all outside activities and housekeeping, stairs and bathing.</li><li>7 = dependent for personal care.</li><li>9 = terminally ill with life expectancy under 6 months, even if not otherwise frail.</li><li>Validated for age 65+; use with care in younger patients or a stable single disability.</li>", "rass": "<li><b>Observe 30 s.</b> Alert and calm is 0. Restless or agitated is +1 to +4.</li><li><b>If not alert,</b> say their name and ask them to open their eyes and look at you. Eye contact over 10 s = −1; under 10 s = −2; movement but no eye contact = −3.</li><li><b>If there's no response to voice,</b> shake the shoulder or rub the sternum. Any movement = −4; none = −5.</li>", "apgar": "<li>Score at 1 and 5 minutes after birth. If under 7 at 5 minutes, repeat every 5 minutes up to 20 minutes.</li><li>Never delay resuscitation to score.</li><li>Each item scores 0–2. Colour: most healthy newborns score 1 at 1 minute.</li>"};
 let advId=store.get("advId","stroke");
-$("advPick").innerHTML=`<button class="chip" data-id="recent" aria-pressed="false"><strong>Recent</strong></button>`
-  +`<p class="note" style="width:100%;margin:6px 0 0"><b>Ontario protocols</b> · BLS PCS v3.4</p>`+PROTO.map(p=>`<button class="chip" data-id="${p.id}" aria-pressed="false">${p.n}</button>`).join("")
-  +`<p class="note" style="width:100%;margin:6px 0 0"><b>Hospital and clinical scores</b> · general references, not Ontario standards</p>`+SCALES.map(sc=>`<button class="chip" data-id="${sc.id}" aria-pressed="false">${sc.n}</button>`).join("");
-$("advPick").addEventListener("click",e=>{const b=e.target.closest(".chip");if(b){advId=b.dataset.id;store.set("advId",advId);renderAdv()}});
+/* Score picker grouped by topic. Ontario prompt cards first, then general hospital/clinical scores. */
+const SCGRP=[["Stroke",["lams","cpss"]],["Deterioration & sepsis",["news2","qsofa"]],["Heart & lungs",["heart","wells","perc","crb65"]],
+ ["Head & spine",["cthead","cspine"]],["Mental status & frailty",["fourat","rass","cfs"]],["Newborn",["apgar"]]];
+const chipFor=(id,n)=>`<button class="chip" data-id="${id}" aria-pressed="false">${n}</button>`;
+$("advPick").innerHTML=chipFor("recent","<strong>Recent</strong>")
+  +`<p class="grp-note">Ontario protocols · BLS PCS v3.4</p>`+PROTO.map(p=>chipFor(p.id,p.n)).join("")
+  +`<p class="note" style="width:100%;margin:10px 0 0"><b>Hospital and clinical scores</b> · general references, not Ontario standards</p>`
+  +SCGRP.map(([g,ids])=>`<p class="grp-note">${g}</p>`+ids.map(id=>{const sc=SCALES.find(x=>x.id===id);return sc?chipFor(sc.id,sc.n):""}).join("")).join("")
+  +((ids=>SCALES.filter(sc=>!ids.includes(sc.id)))(SCGRP.flatMap(g=>g[1])).map(sc=>chipFor(sc.id,sc.n)).join(""));
+$("advPick").addEventListener("click",e=>{const b=e.target.closest(".chip");if(b){advId=b.dataset.id;store.set("advId",advId);renderAdv();$("advBody").scrollIntoView({behavior:"smooth"})}});
 function renderAdv(){
   $("advBody").onclick=null;
   if(advId==="recent")return renderRecent();
@@ -1083,7 +1122,11 @@ function rebuild(){ck.cls.clear();picked.forEach(n=>{if(n.startsWith("["))addCls
 function renderDirs(){
   const list=DIRS.filter(D=>(scope==="acp"||D.s==="pcp")&&!(D.aux&&!auxOn(D.aux)&&!(D.auxPcpOnly&&scope==="acp")));
   if(ckDir&&!list.find(D=>D.id===ckDir))ckDir=null;
-  $("kDirs").innerHTML=list.map(D=>`<button class="chip" data-d="${D.id}" aria-pressed="${D.id===ckDir}">${D.n}</button>`).join("");
+  const DIRGRP={arrest:"arrest",tachy:"arrest",brady:"arrest",cshock:"arrest",rosc:"arrest",ischemia:"chest",cpe:"chest",broncho:"resp",allergy:"resp",croup:"resp",
+    hypogly:"metab",adrenal:"metab",hyperk:"metab",opioid:"tox",analgesia:"pain",nausea:"pain",seizure:"pain",combative:"pain",sedation:"pain",
+    ivfluid:"fluid",hemorrhage:"fluid",childbirth:"ob",intub:"airway"};
+  $("kDirs").innerHTML=GROUPS.map(([g,l])=>{const ds=list.filter(D=>(DIRGRP[D.id]||"fluid")===g);
+    return ds.length?`<p class="grp-note">${l}</p>`+ds.map(D=>`<button class="chip" data-d="${D.id}" aria-pressed="${D.id===ckDir}">${D.n}</button>`).join(""):""}).join("");
   const D=DIRS.find(D=>D.id===ckDir);$("kInputs").hidden=!D;$("ckOut").hidden=!D;$("ckBar").hidden=!D;
   if(!D){$("kPickHint").hidden=false;return}
   $("kPickHint").hidden=true;
@@ -1161,9 +1204,17 @@ document.addEventListener("visibilitychange",()=>{
   if(hiddenAt&&Date.now()-hiddenAt>=STALE_MS)resetPatient();hiddenAt=null});
 
 /* ---------- tabs ---------- */
+const APPVER="v3";$("verTxt").textContent=APPVER;
+let lastTab="meds";
 function go(v){document.querySelectorAll("section.view").forEach(s=>s.hidden=s.id!=="v-"+v);
   document.querySelectorAll("nav.tabs button").forEach(b=>b.setAttribute("aria-selected",b.dataset.v===v));
-  store.set("tab",v);window.scrollTo(0,0);}
+  $("gear").setAttribute("aria-pressed",v==="settings");
+  if(v!=="settings"){lastTab=v;store.set("tab",v)}window.scrollTo(0,0);}
+/* Gear toggles the Settings page; Done (or the gear again) returns to the tab you were on. */
+$("gear").onclick=()=>go($("v-settings").hidden?"settings":lastTab);
+$("setBack").onclick=()=>go(lastTab);
+/* Jump chips: scroll to a section heading within the current tab */
+document.addEventListener("click",e=>{const c=e.target.closest(".jump [data-to]");if(c){const t=$(c.dataset.to);if(t)t.scrollIntoView({behavior:"smooth"})}});
 document.querySelector("nav.tabs").addEventListener("click",e=>{const b=e.target.closest("button");if(b)go(b.dataset.v)});
 function hdr(){document.documentElement.style.setProperty("--hdr",$("hdr").offsetHeight+8+"px")}
 addEventListener("resize",hdr);
